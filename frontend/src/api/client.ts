@@ -4,6 +4,8 @@ import type {
   InvestigationRequest,
   InvestigationResponse,
   HealthResponse,
+  RiskAssessment,
+  ActionPlan,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -370,3 +372,76 @@ export async function fetchAgentInvestigation(investigationId: string): Promise<
   }
   return null;
 }
+
+// ==============================================================================
+// PHASE 5: RISK + UNCERTAINTY ENGINE CLIENT API
+// ==============================================================================
+
+export async function fetchAccountRisk(
+  accountId: string,
+  caseId?: string
+): Promise<RiskAssessment | null> {
+  try {
+    const q = caseId ? `?case_id=${encodeURIComponent(caseId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/risk/${accountId}${q}`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn(`Error fetching risk assessment for ${accountId}`, err);
+  }
+  return null;
+}
+
+export async function analyzeRisk(payload: {
+  account_id?: string;
+  case_id?: string;
+  include_phase4_investigation?: boolean;
+}): Promise<RiskAssessment | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/risk/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn('Error analyzing risk', err);
+  }
+  return null;
+}
+
+// ==============================================================================
+// PHASE 6: NEXT BEST ACTION (NBA) RECOMMENDATIONS CLIENT API
+// ==============================================================================
+
+export async function fetchAccountRecommendations(
+  accountId: string,
+  caseId?: string
+): Promise<ActionPlan | null> {
+  try {
+    const q = caseId ? `?case_id=${encodeURIComponent(caseId)}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/recommendations/${accountId}${q}`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn(`Error fetching recommendations for ${accountId}`, err);
+  }
+  return null;
+}
+
+export async function analyzeRecommendations(payload: {
+  account_id?: string;
+  case_id?: string;
+  include_phase4_investigation?: boolean;
+}): Promise<ActionPlan | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/recommendations/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn('Error analyzing recommendations', err);
+  }
+  return null;
+}
+
