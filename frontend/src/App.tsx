@@ -10,6 +10,7 @@ import { fetchHealth } from './api/client';
 
 const AppContent: React.FC = () => {
   const [backendOnline, setBackendOnline] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -26,7 +27,7 @@ const AppContent: React.FC = () => {
     switch (location.pathname) {
       case '/':
         return {
-          title: 'Fraud Operations Command Center',
+          title: 'Dashboard',
           subtitle: 'Real-time telemetry and priority queues',
         };
       case '/cases':
@@ -41,13 +42,13 @@ const AppContent: React.FC = () => {
         };
       case '/graph':
         return {
-          title: 'Graph Intelligence Explorer',
+          title: 'Graph Explorer',
           subtitle: 'Multi-hop entity association network',
         };
       default:
         return {
-          title: 'Fraud Investigation Agent',
-          subtitle: 'Phase 1 Foundation',
+          title: 'FraudWatch',
+          subtitle: 'Investigation Workstation',
         };
     }
   };
@@ -55,10 +56,18 @@ const AppContent: React.FC = () => {
   const meta = getPageMeta();
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
-      <Sidebar backendOnline={backendOnline} />
+    <div className="flex h-screen w-full overflow-hidden bg-[#FAFAFA] text-gray-900">
+      <Sidebar
+        backendOnline={backendOnline}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <Header title={meta.title} subtitle={meta.subtitle} />
+        <Header
+          title={meta.title}
+          subtitle={meta.subtitle}
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<DashboardPage />} />

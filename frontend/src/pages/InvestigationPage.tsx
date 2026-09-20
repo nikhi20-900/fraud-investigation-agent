@@ -264,24 +264,24 @@ export const InvestigationPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-[1600px] mx-auto text-slate-100">
+    <div className="p-6 md:p-8 space-y-8 max-w-[1600px] mx-auto text-gray-900">
       {/* 1. Header & Controls Bar */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-sm space-y-4">
+      <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Target Selection */}
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
-              <ShieldAlert className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   Case:
                 </span>
                 <select
                   value={caseIdParam}
                   onChange={(e) => handleSelectCase(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-indigo-300 focus:outline-none focus:border-indigo-500"
+                  className="bg-gray-100 border border-transparent rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
                 >
                   {allCases.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -290,15 +290,15 @@ export const InvestigationPage: React.FC = () => {
                   ))}
                 </select>
 
-                <span className="text-slate-600">|</span>
+                <span className="text-gray-300">|</span>
 
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   Target Account:
                 </span>
                 <select
                   value={selectedAccountId}
                   onChange={(e) => handleSelectAccount(e.target.value)}
-                  className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-amber-300 focus:outline-none focus:border-amber-500"
+                  className="bg-gray-100 border border-transparent rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
                 >
                   {PRESET_ACCOUNTS.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -314,11 +314,11 @@ export const InvestigationPage: React.FC = () => {
                 </select>
               </div>
 
-              <h1 className="text-lg md:text-xl font-bold text-white mt-1.5 flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight mt-1.5 flex items-center gap-2 flex-wrap">
                 <span>Investigation Workspace:</span>
-                <span className="font-mono text-indigo-400">{selectedAccountId}</span>
+                <span className="font-mono text-blue-600 font-bold">{selectedAccountId}</span>
                 {currentCase && (
-                  <span className="text-xs font-normal text-slate-400 font-mono hidden sm:inline">
+                  <span className="text-xs font-normal text-gray-400 font-mono hidden sm:inline">
                     • {currentCase.title}
                   </span>
                 )}
@@ -330,16 +330,16 @@ export const InvestigationPage: React.FC = () => {
           <div className="flex items-center gap-3 flex-wrap">
             <Link
               to={`/graph?target=${selectedAccountId}`}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all flex items-center gap-2"
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium border border-gray-200/80 shadow-xs transition-all flex items-center gap-2"
             >
-              <Network className="w-4 h-4 text-purple-400" />
+              <Network className="w-4 h-4 text-purple-600" />
               <span>Full Graph Explorer</span>
             </Link>
 
             <button
               onClick={() => loadAccountTelemetry(selectedAccountId, caseIdParam)}
               disabled={isLoading || isInvestigating}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors disabled:opacity-50"
+              className="p-2 rounded-xl bg-white hover:bg-gray-50 text-gray-600 border border-gray-200/80 shadow-xs transition-colors disabled:opacity-50"
               title="Refresh Telemetry"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -348,17 +348,17 @@ export const InvestigationPage: React.FC = () => {
             <button
               onClick={handleRunAgentInvestigation}
               disabled={isInvestigating || isLoading}
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-2 disabled:cursor-not-allowed"
             >
               {isInvestigating ? (
                 <>
                   <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Agent Reasoning Active...</span>
+                  <span>Analyzing Forensic Evidence...</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-3.5 h-3.5 fill-current text-indigo-200" />
-                  <span>Run Agent Investigation</span>
+                  <Play className="w-3.5 h-3.5 fill-current text-white" />
+                  <span>Execute Forensic Investigation</span>
                 </>
               )}
             </button>
@@ -367,8 +367,8 @@ export const InvestigationPage: React.FC = () => {
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/60 flex items-center gap-2 text-xs text-rose-300">
-            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200/60 flex items-center gap-2 text-xs text-red-700">
+            <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -376,119 +376,123 @@ export const InvestigationPage: React.FC = () => {
 
       {/* 2. Top Summary KPI Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {/* Risk Score */}
-        <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 shadow-md">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Risk Score
+        {/* Risk Score — Visually Dominant Lead Metric */}
+        <div className={`p-4 rounded-2xl bg-white border-2 ${
+          (riskAssessment?.risk_score ?? 0) >= 70
+            ? 'border-red-300'
+            : (riskAssessment?.risk_score ?? 0) >= 40
+            ? 'border-amber-300'
+            : 'border-blue-200'
+        } shadow-xs`}>
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-semibold text-gray-700">Risk Score</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${
+              riskAssessment?.risk_tier === 'CRITICAL'
+                ? 'bg-red-50 text-red-600 border border-red-200'
+                : riskAssessment?.risk_tier === 'HIGH'
+                ? 'bg-orange-50 text-orange-600 border border-orange-200'
+                : 'bg-gray-100 text-gray-700'
+            }`}>
+              {riskAssessment?.risk_tier || 'UNASSESSED'}
+            </span>
           </div>
           <div className="flex items-baseline gap-2 mt-1">
             <span
-              className={`text-2xl font-black font-mono ${
+              className={`text-[30px] font-bold tracking-tight font-mono ${
                 (riskAssessment?.risk_score ?? 0) >= 70
-                  ? 'text-rose-400'
+                  ? 'text-red-600'
                   : (riskAssessment?.risk_score ?? 0) >= 40
-                  ? 'text-amber-400'
-                  : 'text-emerald-400'
+                  ? 'text-amber-600'
+                  : 'text-green-600'
               }`}
             >
               {riskAssessment ? riskAssessment.risk_score.toFixed(1) : '—'}
             </span>
-            <span className="text-[10px] font-mono text-slate-500">/ 100</span>
+            <span className="text-[11px] font-mono text-gray-500">/ 100</span>
           </div>
-          <div className="mt-1 text-[11px] font-mono text-slate-300">
-            Tier:{' '}
-            <strong
-              className={
-                riskAssessment?.risk_tier === 'CRITICAL'
-                  ? 'text-rose-400'
-                  : riskAssessment?.risk_tier === 'HIGH'
-                  ? 'text-amber-400'
-                  : 'text-slate-300'
-              }
-            >
-              {riskAssessment?.risk_tier || 'UNASSESSED'}
-            </strong>
+          <div className="mt-1 text-[11px] text-gray-500">
+            Primary Calibrated Exposure
           </div>
         </div>
 
         {/* Uncertainty Score */}
-        <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 shadow-md">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs">
+          <div className="text-[12px] font-medium text-gray-600">
             Uncertainty Score
           </div>
           <div className="flex items-baseline gap-2 mt-1">
             <span
-              className={`text-2xl font-black font-mono ${
+              className={`text-[26px] font-semibold tracking-tight font-mono ${
                 (riskAssessment?.uncertainty.uncertainty_score ?? 0) >= 60
-                  ? 'text-amber-400'
-                  : 'text-indigo-300'
+                  ? 'text-amber-600'
+                  : 'text-blue-600'
               }`}
             >
               {riskAssessment ? riskAssessment.uncertainty.uncertainty_score.toFixed(1) : '—'}
             </span>
-            <span className="text-[10px] font-mono text-slate-500">/ 100</span>
+            <span className="text-[11px] font-mono text-gray-500">/ 100</span>
           </div>
-          <div className="mt-1 text-[11px] font-mono text-slate-300">
-            Tier: <strong>{riskAssessment?.uncertainty.uncertainty_tier || '—'}</strong>
+          <div className="mt-1 text-[11px] font-mono text-gray-500">
+            Tier: <strong className="text-gray-800">{riskAssessment?.uncertainty.uncertainty_tier || '—'}</strong>
           </div>
         </div>
 
         {/* Decision Quadrant */}
-        <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 shadow-md">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs">
+          <div className="text-[12px] font-medium text-gray-600">
             Decision Quadrant
           </div>
-          <div className="text-sm font-bold font-mono text-indigo-300 mt-2 truncate">
+          <div className="text-sm font-semibold text-gray-900 mt-2 truncate">
             {riskAssessment?.uncertainty.quadrant.replace(/_/g, ' ') || 'CALCULATING...'}
           </div>
-          <div className="mt-1 text-[10px] text-slate-400">
-            Evidence Coverage: {Math.round((riskAssessment?.evidence_coverage || 0) * 100)}%
+          <div className="mt-1 text-[11px] text-gray-500">
+            Evidence: {Math.round((riskAssessment?.evidence_coverage || 0) * 100)}%
           </div>
         </div>
 
         {/* Findings Count */}
-        <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 shadow-md">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs">
+          <div className="text-[12px] font-medium text-gray-600">
             Fraud Patterns
           </div>
-          <div className="text-2xl font-black font-mono text-white mt-1">
+          <div className="text-[26px] font-semibold tracking-tight font-mono text-gray-900 mt-1">
             {findings.length}
           </div>
-          <div className="mt-1 text-[10px] text-slate-400">
+          <div className="mt-1 text-[11px] text-gray-500">
             {findings.filter((f) => f.severity === 'CRITICAL' || f.severity === 'HIGH').length} High/Critical
           </div>
         </div>
 
         {/* Next Best Actions */}
-        <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 shadow-md col-span-2 sm:col-span-1">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-indigo-400" />
+        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs col-span-2 sm:col-span-1">
+          <div className="text-[12px] font-medium text-gray-600 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             Next Best Actions
           </div>
-          <div className="text-2xl font-black font-mono text-indigo-300 mt-1">
+          <div className="text-[26px] font-semibold tracking-tight font-mono text-blue-600 mt-1">
             {actionPlan?.recommended_actions.length ?? 0}
           </div>
-          <div className="mt-1 text-[10px] text-slate-400">
-            Advisory Investigation Steps
+          <div className="mt-1 text-[11px] text-gray-500">
+            Advisory Recommendations
           </div>
         </div>
       </div>
 
       {/* 3. Agent Synthesis Banner (if run) */}
       {agentSummary && (
-        <div className="p-5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 shadow-xl space-y-2">
+        <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200/60 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-indigo-300">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-white">
+            <div className="flex items-center gap-2 text-blue-900">
+              <Sparkles className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-950">
                 Agent Reasoning Synthesis
               </span>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-200 border border-indigo-700">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
               Status: {investigationStatus}
             </span>
           </div>
-          <p className="text-xs text-indigo-100 leading-relaxed bg-slate-950/50 p-3.5 rounded-xl border border-indigo-900/40">
+          <p className="text-xs text-blue-950 leading-relaxed bg-white/80 p-3.5 rounded-xl border border-blue-100">
             {agentSummary}
           </p>
         </div>
@@ -498,12 +502,12 @@ export const InvestigationPage: React.FC = () => {
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
-            <Network className="w-4 h-4 text-indigo-400" />
-            <h2 className="text-sm font-bold text-white tracking-wide">
+            <Network className="w-4 h-4 text-blue-600" />
+            <h2 className="text-[14px] font-semibold text-gray-900 tracking-tight">
               Target Entity Neighborhood Graph (2 Hops)
             </h2>
           </div>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-gray-400">
             Click any node to inspect telemetry or switch target
           </span>
         </div>
