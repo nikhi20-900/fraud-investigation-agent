@@ -4,8 +4,10 @@
   ],
   "extraPaths": [
     ".",
-    "backend"
+    "backend",
+    "backend/.venv/lib/python3.14/site-packages"
   ],
-  "venvPath": "backend",
+  "pythonVersion": "3.14",
+  "venvPath": "/Users/nikhilchhetri/Fraud /fraud-investigation-agent/backend",
   "venv": ".venv"
 }

@@ -112,6 +112,17 @@ class TestFraudInvestigationAgent(unittest.TestCase):
         # Check next actions
         self.assertGreater(len(report["next_actions"]), 0)
 
+        # Check audit trail
+        self.assertIn("audit_trail", report)
+        self.assertGreater(len(report["audit_trail"]), 0)
+
+        # Verify all 9 required fields are present
+        for field in [
+            "investigation_id", "status", "summary", "findings",
+            "evidence", "hypotheses", "uncertainties", "next_actions", "audit_trail"
+        ]:
+            self.assertIn(field, report)
+
     def test_6_evidence_traceability_no_hallucination(self):
         """Verifies that all entity IDs cited in findings exist in the actual graph."""
         report = self.agent.investigate(case_id="CASE-1001")

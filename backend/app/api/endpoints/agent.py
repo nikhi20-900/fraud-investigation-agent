@@ -39,6 +39,7 @@ class AgentInvestigationResult(BaseModel):
     hypotheses: List[Dict[str, Any]] = Field(default_factory=list)
     uncertainties: List[str] = Field(default_factory=list)
     next_actions: List[str] = Field(default_factory=list)
+    audit_trail: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 @router.post("/investigate", response_model=AgentInvestigationResult)
