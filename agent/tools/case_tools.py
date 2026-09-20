@@ -9,8 +9,12 @@ import os
 from typing import Dict, Any, Optional, List
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
-from app.api.endpoints.cases import MOCK_CASES
-from app.services.graph_service import graph_service
+try:
+    from backend.app.api.endpoints.cases import MOCK_CASES
+    from backend.app.services.graph_service import graph_service
+except ImportError:
+    from app.api.endpoints.cases import MOCK_CASES
+    from app.services.graph_service import graph_service
 
 
 def get_case_details(case_id: str) -> Optional[Dict[str, Any]]:

@@ -33,12 +33,12 @@ import uuid
 from typing import Dict, Any, Optional
 from langgraph.graph import StateGraph, START, END
 
-from agent.state.investigation_state import InvestigationState
-from agent.nodes.supervisor import supervisor_node, should_seek_more_evidence
-from agent.nodes.planner import planner_node
-from agent.nodes.investigator import investigator_node
-from agent.nodes.evidence_analyzer import evidence_analyzer_node
-from agent.nodes.report_generator import report_generator_node
+from .state.investigation_state import InvestigationState
+from .nodes.supervisor import supervisor_node, should_seek_more_evidence
+from .nodes.planner import planner_node
+from .nodes.investigator import investigator_node
+from .nodes.evidence_analyzer import evidence_analyzer_node
+from .nodes.report_generator import report_generator_node
 
 
 def build_investigation_graph():

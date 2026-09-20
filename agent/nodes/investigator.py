@@ -6,8 +6,8 @@ CRITICAL: Never synthesizes or fabricates graph facts.
 """
 
 from typing import Dict, Any, List
-from agent.state.investigation_state import InvestigationState
-from agent.tools.graph_tools import (
+from ..state.investigation_state import InvestigationState
+from ..tools.graph_tools import (
     get_account_neighborhood,
     find_shared_devices,
     find_shared_ips,
@@ -15,7 +15,7 @@ from agent.tools.graph_tools import (
     trace_transaction_paths,
     get_merchant_relationships,
 )
-from agent.tools.fraud_tools import (
+from ..tools.fraud_tools import (
     analyze_account_patterns,
     analyze_case_findings,
 )

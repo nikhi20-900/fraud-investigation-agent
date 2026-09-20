@@ -5,7 +5,7 @@ Manages agent lifecycle, initialization, and conditional routing logic for evide
 """
 
 from typing import Dict, Any, Literal
-from agent.state.investigation_state import InvestigationState
+from ..state.investigation_state import InvestigationState
 
 
 def supervisor_node(state: InvestigationState) -> Dict[str, Any]:

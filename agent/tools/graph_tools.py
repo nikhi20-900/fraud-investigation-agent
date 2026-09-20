@@ -11,7 +11,10 @@ from typing import Dict, Any, List, Optional
 
 # Ensure backend app is discoverable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
-from app.services.graph_service import graph_service, GraphService
+try:
+    from backend.app.services.graph_service import graph_service, GraphService
+except ImportError:
+    from app.services.graph_service import graph_service, GraphService
 
 
 def get_account_neighborhood(account_id: str, max_hops: int = 2) -> Dict[str, Any]:

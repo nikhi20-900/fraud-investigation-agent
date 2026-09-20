@@ -1,8 +1,8 @@
-from agent.nodes.supervisor import supervisor_node, should_seek_more_evidence
-from agent.nodes.planner import planner_node
-from agent.nodes.investigator import investigator_node
-from agent.nodes.evidence_analyzer import evidence_analyzer_node
-from agent.nodes.report_generator import report_generator_node
+from .supervisor import supervisor_node, should_seek_more_evidence
+from .planner import planner_node
+from .investigator import investigator_node
+from .evidence_analyzer import evidence_analyzer_node
+from .report_generator import report_generator_node
 
 __all__ = [
     "supervisor_node",

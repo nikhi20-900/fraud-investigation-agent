@@ -1,4 +1,4 @@
-from agent.tools.graph_tools import (
+from .graph_tools import (
     get_account_neighborhood,
     find_shared_devices,
     find_shared_ips,
@@ -6,11 +6,11 @@ from agent.tools.graph_tools import (
     trace_transaction_paths,
     get_merchant_relationships,
 )
-from agent.tools.fraud_tools import (
+from .fraud_tools import (
     analyze_account_patterns,
     analyze_case_findings,
 )
-from agent.tools.case_tools import (
+from .case_tools import (
     get_case_details,
     get_account_profile,
 )

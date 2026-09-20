@@ -22,7 +22,7 @@ PRESERVES:
 """
 
 from typing import Dict, Any, List
-from agent.state.investigation_state import InvestigationState
+from ..state.investigation_state import InvestigationState
 
 
 def report_generator_node(state: InvestigationState) -> Dict[str, Any]:

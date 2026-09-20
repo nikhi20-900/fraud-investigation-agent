@@ -10,7 +10,10 @@ import os
 from typing import Dict, Any, List
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
-from app.services.fraud_detection.pattern_detector import pattern_detector
+try:
+    from backend.app.services.fraud_detection.pattern_detector import pattern_detector
+except ImportError:
+    from app.services.fraud_detection.pattern_detector import pattern_detector
 
 
 def analyze_account_patterns(account_id: str) -> Dict[str, Any]:

@@ -5,8 +5,8 @@ Formulates targeted investigation hypotheses and analytical steps.
 """
 
 from typing import Dict, Any, List
-from agent.state.investigation_state import InvestigationState
-from agent.tools.case_tools import get_case_details, get_account_profile
+from ..state.investigation_state import InvestigationState
+from ..tools.case_tools import get_case_details, get_account_profile
 
 
 def planner_node(state: InvestigationState) -> Dict[str, Any]:

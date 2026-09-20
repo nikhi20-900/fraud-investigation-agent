@@ -1,4 +1,4 @@
-from agent.prompts.investigator import (
+from .investigator import (
     INVESTIGATOR_SYSTEM_PROMPT,
     PLANNER_PROMPT_TEMPLATE,
     ANALYZER_PROMPT_TEMPLATE,

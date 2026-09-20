@@ -12,7 +12,7 @@ CRITICAL CONSTRAINTS:
 """
 
 from typing import Dict, Any, List
-from agent.state.investigation_state import InvestigationState, Hypothesis
+from ..state.investigation_state import InvestigationState, Hypothesis
 
 
 def evidence_analyzer_node(state: InvestigationState) -> Dict[str, Any]:
