@@ -1,12 +1,12 @@
 {
   "metadata": {
     "generator": "generate_fraud_data.py",
-    "generated_at": "2026-09-20T13:37:10.453235+00:00",
+    "generated_at": "2026-09-20T13:44:51.340511+00:00",
     "random_seed": 42,
     "vertex_counts": {
       "Customer": 23,
       "Account": 23,
-      "Transaction": 36,
+      "Transaction": 38,
       "Card": 14,
       "Device": 14,
       "IP": 15,
@@ -14,11 +14,11 @@
     },
     "edge_counts": {
       "OWNS": 23,
-      "MADE": 36,
+      "MADE": 38,
       "USES_CARD": 14,
       "USES_DEVICE": 17,
       "CONNECTED_FROM": 17,
-      "PAID_TO": 34,
+      "PAID_TO": 36,
       "RECEIVED_BY": 2
     }
   },
@@ -613,6 +613,22 @@
         "amount": 2450.0,
         "currency": "USD",
         "timestamp": "2026-09-20T11:50:00Z",
+        "status": "FLAGGED",
+        "channel": "MOBILE_APP"
+      },
+      {
+        "id": "TXN-RING-001-B",
+        "amount": 2100.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:52:00Z",
+        "status": "FLAGGED",
+        "channel": "MOBILE_APP"
+      },
+      {
+        "id": "TXN-RING-001-C",
+        "amount": 1950.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:55:00Z",
         "status": "FLAGGED",
         "channel": "MOBILE_APP"
       },
@@ -1264,6 +1280,14 @@
         "to_transaction": "TXN-RING-001"
       },
       {
+        "from_account": "ACC-RING-001",
+        "to_transaction": "TXN-RING-001-B"
+      },
+      {
+        "from_account": "ACC-RING-001",
+        "to_transaction": "TXN-RING-001-C"
+      },
+      {
         "from_account": "ACC-RING-002",
         "to_transaction": "TXN-RING-002"
       },
@@ -1653,6 +1677,14 @@
       },
       {
         "from_transaction": "TXN-RING-001",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-RING-001-B",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-RING-001-C",
         "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
       },
       {

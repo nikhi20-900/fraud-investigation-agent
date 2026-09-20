@@ -15,7 +15,7 @@ class EvidenceBuilder:
         items = [
             EvidenceItem(
                 rule="DEVICE_SHARING_THRESHOLD",
-                detail=f"Device {device_id} is shared across {account_count} distinct accounts: {', '.join(accounts)}",
+                detail=f"Device is shared across {account_count} distinct accounts",
                 metrics={"device_id": device_id, "account_count": account_count, "accounts": accounts},
             )
         ]
@@ -34,7 +34,7 @@ class EvidenceBuilder:
         items = [
             EvidenceItem(
                 rule="IP_SHARING_THRESHOLD",
-                detail=f"Network IP {ip_address} ({ip_id}) served authorizations across {account_count} distinct accounts: {', '.join(accounts)}",
+                detail=f"Network IP {ip_address} ({ip_id}) served authorizations across {account_count} distinct accounts",
                 metrics={"ip_address": ip_address, "account_count": account_count, "accounts": accounts},
             )
         ]
@@ -47,6 +47,16 @@ class EvidenceBuilder:
                 )
             )
         return items
+
+    @staticmethod
+    def ip_subnet_cluster(subnet_prefix: str, account_count: int, accounts: List[str], sample_ips: List[str]) -> List[EvidenceItem]:
+        return [
+            EvidenceItem(
+                rule="IP_SUBNET_CLUSTER_THRESHOLD",
+                detail=f"IP endpoint belongs to a /24 subnet cluster ({subnet_prefix}.0/24) shared across {account_count} distinct accounts",
+                metrics={"subnet": f"{subnet_prefix}.0/24", "account_count": account_count, "accounts": accounts, "sample_ips": sample_ips},
+            )
+        ]
 
     @staticmethod
     def layering_chain(source_account: str, hop_count: int, intermediary_accounts: List[str], terminal_entity: str, total_volume: float) -> List[EvidenceItem]:

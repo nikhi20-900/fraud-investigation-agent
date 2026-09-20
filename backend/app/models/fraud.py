@@ -31,10 +31,27 @@ class FraudFinding(BaseModel):
     severity: Severity
     # Confidence represents the strength of available evidence supporting this pattern,
     # NOT a raw probability of fraud.
-    confidence: float = Field(ge=0.0, le=1.0, description="Evidentiary support confidence (0.0 to 1.0)")
+    confidence: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Evidentiary support confidence (0.0 to 1.0) indicating how strongly available evidence corroborates this detected pattern. Distinct from probability of fraud.",
+    )
+    confidence_meaning: str = Field(
+        default="The available evidence strongly supports this detected pattern.",
+        description="Interpretation of confidence as evidentiary support rather than statistical probability of fraud",
+    )
     entities: List[str] = Field(default_factory=list, description="IDs of entities involved in this finding")
     evidence: List[EvidenceItem] = Field(default_factory=list, description="Concrete corroborating evidence items")
     explanation: str = Field(description="Human and agent-readable forensic explanation")
+
+
+class DetectorScore(BaseModel):
+    pattern: PatternType
+    display_name: str
+    severity: Severity
+    confidence: float
+    status: str = Field(description="'DETECTED' if evidence threshold met, else 'CLEAR'")
+    finding: Optional[FraudFinding] = None
 
 
 class AccountAnalysisResult(BaseModel):
@@ -43,6 +60,14 @@ class AccountAnalysisResult(BaseModel):
     total_findings: int
     highest_severity: Severity
     findings: List[FraudFinding]
+    detector_scores: Dict[str, DetectorScore] = Field(
+        default_factory=dict,
+        description="Scorecard mapping each of the six detectors to its severity and evidentiary confidence",
+    )
+    tree_view: str = Field(
+        default="",
+        description="Visual ASCII tree representation aggregating the six detectors",
+    )
     summary: str
 
 
