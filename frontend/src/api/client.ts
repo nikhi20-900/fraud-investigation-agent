@@ -259,3 +259,69 @@ export async function fetchMerchantRelationships(merchantId: string): Promise<an
   }
   return null;
 }
+
+// ==============================================================================
+// PHASE 3: FRAUD PATTERN DETECTION CLIENT API
+// ==============================================================================
+
+export interface FraudFindingItem {
+  pattern: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  confidence: number;
+  entities: string[];
+  evidence: Array<{ rule: string; detail: string; metrics?: Record<string, any> }>;
+  explanation: string;
+}
+
+export interface AccountAnalysisData {
+  account_id: string;
+  analyzed_at: string;
+  total_findings: number;
+  highest_severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  findings: FraudFindingItem[];
+  summary: string;
+}
+
+export interface CaseFindingsData {
+  case_id: string;
+  analyzed_at: string;
+  target_accounts: string[];
+  total_findings: number;
+  highest_severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  findings: FraudFindingItem[];
+  summary: string;
+}
+
+export async function fetchAccountFraudPatterns(accountId: string): Promise<AccountAnalysisData | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/fraud/patterns/${accountId}`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn(`Error fetching fraud patterns for ${accountId}`);
+  }
+  return null;
+}
+
+export async function fetchCaseFraudFindings(caseId: string): Promise<CaseFindingsData | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/fraud/findings/${caseId}`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn(`Error fetching case findings for ${caseId}`);
+  }
+  return null;
+}
+
+export async function analyzeFraudTarget(payload: { account_id?: string; case_id?: string; merchant_id?: string }): Promise<AccountAnalysisData | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/fraud/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn('Error running fraud analysis');
+  }
+  return null;
+}
