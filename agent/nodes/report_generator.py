@@ -40,8 +40,8 @@ def report_generator_node(state: InvestigationState) -> Dict[str, Any]:
     audit_trail = list(state.get("audit_trail", []))
 
     # Formulate executive summary
-    supported_hypotheses = [h["statement"] for h in hypotheses if h.get("status") == "SUPPORTED"]
-    detected_patterns = [f.get("pattern") for f in phase3_findings]
+    supported_hypotheses = [str(h["statement"]) for h in hypotheses if h.get("status") == "SUPPORTED"]
+    detected_patterns = [str(f.get("pattern")) for f in phase3_findings if f.get("pattern")]
 
     if supported_hypotheses:
         summary = (
@@ -71,6 +71,12 @@ def report_generator_node(state: InvestigationState) -> Dict[str, Any]:
     if not next_actions:
         next_actions.append("Maintain standard account monitoring; no immediate restriction warranted.")
 
+    audit_trail.append({
+        "step": "generate_report",
+        "details": f"Generated final investigation report with {len(phase3_findings)} findings, "
+                   f"{len(hypotheses)} hypotheses, and {len(next_actions)} recommended next actions.",
+    })
+
     final_report = {
         "investigation_id": investigation_id,
         "case_id": case_id,
@@ -82,13 +88,8 @@ def report_generator_node(state: InvestigationState) -> Dict[str, Any]:
         "hypotheses": hypotheses,
         "uncertainties": uncertainties,
         "next_actions": next_actions,
+        "audit_trail": audit_trail,
     }
-
-    audit_trail.append({
-        "step": "generate_report",
-        "details": f"Generated final investigation report with {len(phase3_findings)} findings, "
-                   f"{len(hypotheses)} hypotheses, and {len(next_actions)} recommended next actions.",
-    })
 
     return {
         "summary": summary,

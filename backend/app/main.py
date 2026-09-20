@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.endpoints import health, cases, investigations, graph, fraud, agent
+from app.api.endpoints import health, cases, investigations, graph, fraud, agent, risk
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Backend API service for Agentic Fraud Investigation Agent (Phase 4 — Agentic Investigation)",
+    description="Backend API service for Agentic Fraud Investigation Agent (Phase 5 — Risk + Uncertainty Engine)",
     openapi_url="/api/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -31,6 +31,7 @@ app.include_router(investigations.router, prefix=settings.API_PREFIX)
 app.include_router(graph.router, prefix=settings.API_PREFIX)
 app.include_router(fraud.router, prefix=settings.API_PREFIX)
 app.include_router(agent.router, prefix=settings.API_PREFIX)
+app.include_router(risk.router, prefix=settings.API_PREFIX)
 
 
 @app.get("/", tags=["Root"])

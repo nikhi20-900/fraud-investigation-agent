@@ -340,6 +340,7 @@ export interface AgentInvestigationReport {
   }>;
   uncertainties: string[];
   next_actions: string[];
+  audit_trail?: Array<{ step: string; details: string }>;
 }
 
 export async function triggerAgentInvestigation(payload: {

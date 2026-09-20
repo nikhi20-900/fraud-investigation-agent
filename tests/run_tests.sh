@@ -2,7 +2,7 @@
 set -e
 
 echo "=== 1. Validating Synthetic Data Generator ==="
-python3 data/generate_fraud_data.py
+backend/.venv/bin/python data/generate_fraud_data.py
 
 echo "=== 2. Running Graph & Backend Unit Tests ==="
 cd backend
