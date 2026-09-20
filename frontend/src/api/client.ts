@@ -312,16 +312,60 @@ export async function fetchCaseFraudFindings(caseId: string): Promise<CaseFindin
   return null;
 }
 
-export async function analyzeFraudTarget(payload: { account_id?: string; case_id?: string; merchant_id?: string }): Promise<AccountAnalysisData | null> {
+// ==============================================================================
+// PHASE 4: AGENTIC INVESTIGATION CLIENT API
+// ==============================================================================
+
+export interface AgentInvestigationReport {
+  investigation_id: string;
+  case_id?: string;
+  target_account_id?: string;
+  status: string;
+  summary: string;
+  findings: FraudFindingItem[];
+  evidence: Array<{
+    rule: string;
+    detail: string;
+    pattern?: string;
+    severity?: string;
+    confidence?: number;
+    metrics?: Record<string, any>;
+  }>;
+  hypotheses: Array<{
+    id: string;
+    statement: string;
+    status: string;
+    confidence: number;
+    rationale?: string;
+  }>;
+  uncertainties: string[];
+  next_actions: string[];
+}
+
+export async function triggerAgentInvestigation(payload: {
+  case_id?: string;
+  account_id?: string;
+  analyst_notes?: string;
+}): Promise<AgentInvestigationReport | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/fraud/analyze`, {
+    const res = await fetch(`${API_BASE_URL}/api/agent/investigate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
     if (res.ok) return await res.json();
   } catch (err) {
-    console.warn('Error running fraud analysis');
+    console.warn('Error running agent investigation', err);
+  }
+  return null;
+}
+
+export async function fetchAgentInvestigation(investigationId: string): Promise<AgentInvestigationReport | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/agent/investigations/${investigationId}`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn(`Error fetching investigation ${investigationId}`, err);
   }
   return null;
 }
