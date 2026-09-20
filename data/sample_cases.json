@@ -1,0 +1,35 @@
+[
+  {
+    "id": "CASE-1001",
+    "title": "High-Velocity Card Testing Pattern",
+    "customer_id": "CUST-8842",
+    "status": "IN_REVIEW",
+    "risk_level": "CRITICAL",
+    "risk_score": 0.94,
+    "flagged_amount": 14850.00,
+    "currency": "USD",
+    "tags": ["Card Testing", "Velocity Spike", "Crypto Off-ramp"]
+  },
+  {
+    "id": "CASE-1002",
+    "title": "Suspected Account Takeover via SIM Swap",
+    "customer_id": "CUST-3190",
+    "status": "ESCALATED",
+    "risk_level": "HIGH",
+    "risk_score": 0.87,
+    "flagged_amount": 9200.00,
+    "currency": "USD",
+    "tags": ["Account Takeover", "SIM Swap", "P2P Velocity"]
+  },
+  {
+    "id": "CASE-1003",
+    "title": "Synthetic Identity Fraud Ring Cluster",
+    "customer_id": "CUST-7712",
+    "status": "NEW",
+    "risk_level": "HIGH",
+    "risk_score": 0.79,
+    "flagged_amount": 32500.00,
+    "currency": "USD",
+    "tags": ["Synthetic Identity", "Credit Bust-out", "Graph Community"]
+  }
+]

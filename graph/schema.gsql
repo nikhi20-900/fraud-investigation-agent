@@ -1,0 +1,126 @@
+// ==============================================================================
+// TigerGraph Schema: Fraud Investigation Network (Phase 2)
+// Graph Name: FraudNetworkGraph
+// ==============================================================================
+
+DROP GRAPH FraudNetworkGraph;
+DROP TUPLE ALL;
+
+// ------------------------------------------------------------------------------
+// 1. VERTEX DEFINITIONS (7 Core Vertices)
+// ------------------------------------------------------------------------------
+
+// Customer / Account Holder
+CREATE VERTEX Customer (
+    PRIMARY_ID id STRING,
+    name STRING,
+    ssn_hash STRING,
+    email STRING,
+    risk_score DOUBLE,
+    created_at DATETIME
+) WITH STATS="OUTDEGREE_BY_EDGETYPE";
+
+// Financial Account
+CREATE VERTEX Account (
+    PRIMARY_ID id STRING,
+    account_number STRING,
+    account_type STRING,
+    balance DOUBLE,
+    status STRING,
+    opened_date DATETIME
+) WITH STATS="OUTDEGREE_BY_EDGETYPE";
+
+// Individual Transaction Record
+CREATE VERTEX Transaction (
+    PRIMARY_ID id STRING,
+    amount DOUBLE,
+    currency STRING,
+    timestamp DATETIME,
+    status STRING,
+    channel STRING
+) WITH STATS="OUTDEGREE_BY_EDGETYPE";
+
+// Payment Card (Credit / Debit)
+CREATE VERTEX Card (
+    PRIMARY_ID id STRING,
+    card_number_masked STRING,
+    card_type STRING,
+    expiration_date STRING
+) WITH STATS="OUTDEGREE_BY_EDGETYPE";
+
+// User Hardware / Device Fingerprint
+CREATE VERTEX Device (
+    PRIMARY_ID id STRING,
+    device_fingerprint STRING,
+    device_type STRING,
+    os STRING,
+    browser STRING,
+    is_emulator BOOL
+) WITH STATS="OUTDEGREE_BY_EDGETYPE";
+
+// Network IP Address
+CREATE VERTEX IP (
+    PRIMARY_ID id STRING,
+    ip_address STRING,
+    asn STRING,
+    country STRING,
+    is_proxy_vpn BOOL
+) WITH STATS="OUTDEGREE_BY_EDGETYPE";
+
+// Merchant / Beneficiary Entity
+CREATE VERTEX Merchant (
+    PRIMARY_ID id STRING,
+    name STRING,
+    merchant_category_code STRING,
+    risk_level STRING
+) WITH STATS="OUTDEGREE_BY_EDGETYPE";
+
+// ------------------------------------------------------------------------------
+// 2. EDGE DEFINITIONS (7 Directed Relationships)
+// ------------------------------------------------------------------------------
+
+// Customer owns financial account
+CREATE DIRECTED EDGE OWNS (FROM Customer, TO Account);
+
+// Account initiated transaction
+CREATE DIRECTED EDGE MADE (FROM Account, TO Transaction);
+
+// Account uses payment card
+CREATE DIRECTED EDGE USES_CARD (FROM Account, TO Card, since DATETIME);
+
+// Account uses device hardware
+CREATE DIRECTED EDGE USES_DEVICE (FROM Account, TO Device, last_seen DATETIME);
+
+// Account connected from IP network endpoint
+CREATE DIRECTED EDGE CONNECTED_FROM (FROM Account, TO IP, timestamp DATETIME);
+
+// Transaction paid out to merchant
+CREATE DIRECTED EDGE PAID_TO (FROM Transaction, TO Merchant);
+
+// Transaction received by beneficiary account (for P2P & layering chains)
+CREATE DIRECTED EDGE RECEIVED_BY (FROM Transaction, TO Account);
+
+// Composite USES edge supporting both Card and Device targets
+CREATE DIRECTED EDGE USES (FROM Account, TO Card | FROM Account, TO Device, last_used DATETIME);
+
+// ------------------------------------------------------------------------------
+// 3. GRAPH DEFINITION
+// ------------------------------------------------------------------------------
+
+CREATE GRAPH FraudNetworkGraph (
+    Customer,
+    Account,
+    Transaction,
+    Card,
+    Device,
+    IP,
+    Merchant,
+    OWNS,
+    MADE,
+    USES_CARD,
+    USES_DEVICE,
+    CONNECTED_FROM,
+    PAID_TO,
+    RECEIVED_BY,
+    USES
+);

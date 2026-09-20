@@ -1,0 +1,189 @@
+// ==============================================================================
+// TigerGraph GSQL Queries: Fraud Investigation Queries (Phase 2)
+// Graph Name: FraudNetworkGraph
+// ==============================================================================
+
+USE GRAPH FraudNetworkGraph
+
+// ------------------------------------------------------------------------------
+// Query 1: Account Neighborhood Expansion (K-Hop Subgraph)
+// ------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY account_neighborhood(VERTEX<Account> seed_account, INT max_hops = 2) 
+FOR GRAPH FraudNetworkGraph {
+    ListAccum<EDGE> @@edges;
+    SetAccum<VERTEX> @@nodes;
+
+    Start = {seed_account};
+    @@nodes += seed_account;
+
+    FOREACH i IN RANGE[1, max_hops] DO
+        Start = SELECT t FROM Start:s -(:e)- :t
+                ACCUM @@edges += e, @@nodes += t;
+    END;
+
+    PRINT @@nodes, @@edges;
+}
+
+// ------------------------------------------------------------------------------
+// Query 2: Shared Devices (Accounts sharing hardware fingerprints)
+// ------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY find_shared_devices(INT min_accounts = 2) 
+FOR GRAPH FraudNetworkGraph {
+    TYPEDEF TUPLE<STRING device_id, STRING device_fingerprint, BOOL is_emulator, INT account_count, LIST<STRING> account_ids> DeviceShare;
+    ListAccum<DeviceShare> @@shared_devices;
+    SetAccum<VERTEX<Account>> @linked_accounts;
+
+    // Traverse Account -> Device
+    Devices = SELECT d FROM Account:a -(USES_DEVICE:e)- Device:d
+              ACCUM d.@linked_accounts += a;
+
+    // Filter devices used by at least min_accounts
+    FlaggedDevices = SELECT d FROM Devices:d
+                     WHERE d.@linked_accounts.size() >= min_accounts
+                     ACCUM 
+                         LIST<STRING> acc_list,
+                         FOREACH acc IN d.@linked_accounts DO
+                             acc_list += acc.id
+                         END,
+                         @@shared_devices += DeviceShare(d.id, d.device_fingerprint, d.is_emulator, d.@linked_accounts.size(), acc_list);
+
+    PRINT @@shared_devices;
+}
+
+// ------------------------------------------------------------------------------
+// Query 3: Shared IPs (Accounts connecting from identical IP endpoints)
+// ------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY find_shared_ips(INT min_accounts = 2) 
+FOR GRAPH FraudNetworkGraph {
+    TYPEDEF TUPLE<STRING ip_id, STRING ip_address, STRING country, BOOL is_proxy_vpn, INT account_count, LIST<STRING> account_ids> IPShare;
+    ListAccum<IPShare> @@shared_ips;
+    SetAccum<VERTEX<Account>> @linked_accounts;
+
+    // Traverse Account -> IP
+    IPs = SELECT ip FROM Account:a -(CONNECTED_FROM:e)- IP:ip
+          ACCUM ip.@linked_accounts += a;
+
+    FlaggedIPs = SELECT ip FROM IPs:ip
+                 WHERE ip.@linked_accounts.size() >= min_accounts
+                 ACCUM
+                     LIST<STRING> acc_list,
+                     FOREACH acc IN ip.@linked_accounts DO
+                         acc_list += acc.id
+                     END,
+                     @@shared_ips += IPShare(ip.id, ip.ip_address, ip.country, ip.is_proxy_vpn, ip.@linked_accounts.size(), acc_list);
+
+    PRINT @@shared_ips;
+}
+
+// ------------------------------------------------------------------------------
+// Query 4: Connected Accounts (Accounts linked via 2-hop entity sharing)
+// ------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY find_connected_accounts(VERTEX<Account> seed_account) 
+FOR GRAPH FraudNetworkGraph {
+    TYPEDEF TUPLE<STRING target_account_id, STRING shared_entity_type, STRING shared_entity_id> AccountLink;
+    ListAccum<AccountLink> @@connections;
+
+    // Accounts sharing the same device
+    Devices = SELECT d FROM Account:s -(USES_DEVICE:e)- Device:d
+              WHERE s == seed_account;
+
+    AccViaDevice = SELECT a FROM Devices:d -(USES_DEVICE:e)- Account:a
+                   WHERE a != seed_account
+                   ACCUM @@connections += AccountLink(a.id, "Device", d.id);
+
+    // Accounts sharing the same IP
+    IPs = SELECT ip FROM Account:s -(CONNECTED_FROM:e)- IP:ip
+          WHERE s == seed_account;
+
+    AccViaIP = SELECT a FROM IPs:ip -(CONNECTED_FROM:e)- Account:a
+               WHERE a != seed_account
+               ACCUM @@connections += AccountLink(a.id, "IP", ip.id);
+
+    // Accounts sharing the same Card
+    Cards = SELECT c FROM Account:s -(USES_CARD:e)- Card:c
+            WHERE s == seed_account;
+
+    AccViaCard = SELECT a FROM Cards:c -(USES_CARD:e)- Account:a
+                 WHERE a != seed_account
+                 ACCUM @@connections += AccountLink(a.id, "Card", c.id);
+
+    PRINT seed_account.id AS seed_account_id, @@connections;
+}
+
+// ------------------------------------------------------------------------------
+// Query 5: Transaction Paths (Multi-hop fund flows & layering chains)
+// ------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY trace_transaction_paths(VERTEX<Account> source_account, INT max_depth = 3) 
+FOR GRAPH FraudNetworkGraph {
+    ListAccum<EDGE> @@path_edges;
+    SetAccum<VERTEX> @@path_vertices;
+
+    Start = {source_account};
+    @@path_vertices += source_account;
+
+    // Hop 1: Account -> MADE -> Transaction
+    Txns1 = SELECT t FROM Start:a -(MADE:e)- Transaction:t
+            ACCUM @@path_edges += e, @@path_vertices += t;
+
+    // Hop 2: Transaction -> RECEIVED_BY -> Account (or PAID_TO -> Merchant)
+    BeneficiaryAccs = SELECT a FROM Txns1:t -(RECEIVED_BY:e)- Account:a
+                      ACCUM @@path_edges += e, @@path_vertices += a;
+
+    Merchants = SELECT m FROM Txns1:t -(PAID_TO:e)- Merchant:m
+                ACCUM @@path_edges += e, @@path_vertices += m;
+
+    // Hop 3: Downstream hops if max_depth >= 2
+    IF max_depth >= 2 THEN
+        Txns2 = SELECT t FROM BeneficiaryAccs:a -(MADE:e)- Transaction:t
+                ACCUM @@path_edges += e, @@path_vertices += t;
+
+        DownstreamAccs = SELECT a FROM Txns2:t -(RECEIVED_BY:e)- Account:a
+                         ACCUM @@path_edges += e, @@path_vertices += a;
+
+        DownstreamMerchants = SELECT m FROM Txns2:t -(PAID_TO:e)- Merchant:m
+                              ACCUM @@path_edges += e, @@path_vertices += m;
+    END;
+
+    PRINT @@path_vertices, @@path_edges;
+}
+
+// ------------------------------------------------------------------------------
+// Query 6: Merchant Relationships (Accounts & transactions targeting a merchant)
+// ------------------------------------------------------------------------------
+CREATE OR REPLACE QUERY get_merchant_relationships(VERTEX<Merchant> target_merchant) 
+FOR GRAPH FraudNetworkGraph {
+    SumAccum<DOUBLE> @@total_volume;
+    SumAccum<INT> @@txn_count;
+    SetAccum<STRING> @@unique_accounts;
+    ListAccum<EDGE> @@edges;
+    SetAccum<VERTEX> @@nodes;
+
+    Start = {target_merchant};
+    @@nodes += target_merchant;
+
+    // Transactions targeting this merchant
+    Txns = SELECT t FROM Merchant:m -(PAID_TO:e)- Transaction:t
+           WHERE m == target_merchant
+           ACCUM 
+               @@edges += e,
+               @@nodes += t,
+               @@total_volume += t.amount,
+               @@txn_count += 1;
+
+    // Accounts that made those transactions
+    Accounts = SELECT a FROM Txns:t -(MADE:e)- Account:a
+               ACCUM 
+                   @@edges += e,
+                   @@nodes += a,
+                   @@unique_accounts += a.id;
+
+    PRINT target_merchant.name AS merchant_name,
+          @@total_volume AS total_volume_usd,
+          @@txn_count AS transaction_count,
+          @@unique_accounts.size() AS unique_account_count,
+          @@unique_accounts AS account_ids,
+          @@nodes,
+          @@edges;
+}
+
+INSTALL QUERY ALL

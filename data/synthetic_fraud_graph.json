@@ -1,0 +1,1722 @@
+{
+  "metadata": {
+    "generator": "generate_fraud_data.py",
+    "generated_at": "2026-09-20T13:10:30.125152+00:00",
+    "random_seed": 42,
+    "vertex_counts": {
+      "Customer": 23,
+      "Account": 23,
+      "Transaction": 36,
+      "Card": 14,
+      "Device": 14,
+      "IP": 15,
+      "Merchant": 6
+    },
+    "edge_counts": {
+      "OWNS": 23,
+      "MADE": 36,
+      "USES_CARD": 14,
+      "USES_DEVICE": 17,
+      "CONNECTED_FROM": 17,
+      "PAID_TO": 34,
+      "RECEIVED_BY": 2
+    }
+  },
+  "scenarios": [
+    {
+      "name": "Scenario 1: Normal Baseline",
+      "description": "10 regular customers with 1-to-1 account, device, and residential IP mappings performing everyday retail purchases.",
+      "account_count": 10
+    },
+    {
+      "name": "Scenario 2: Shared Device Ring",
+      "description": "4 distinct accounts (ACC-RING-001, ACC-RING-002, ACC-RING-003, ACC-RING-004) all sharing a single rooted emulator (DEV-ROOT-EMU-77).",
+      "device_id": "DEV-ROOT-EMU-77",
+      "accounts": [
+        "ACC-RING-001",
+        "ACC-RING-002",
+        "ACC-RING-003",
+        "ACC-RING-004"
+      ]
+    },
+    {
+      "name": "Scenario 3: Anomalous IP Proxy Cluster",
+      "description": "3 accounts (ACC-PROXY-001, ACC-PROXY-002, ACC-PROXY-003) originating authorizations from single synthetic proxy IP (203.0.113.88).",
+      "ip_id": "IP-ANOMALY-PROXY-88",
+      "ip_address": "203.0.113.88",
+      "accounts": [
+        "ACC-PROXY-001",
+        "ACC-PROXY-002",
+        "ACC-PROXY-003"
+      ]
+    },
+    {
+      "name": "Scenario 4: Merchant Bust-out & Collusion",
+      "description": "High volume fund sweeps concentrated into MERCH-CRYPTO-COLLUSION-99 structured below reporting limits.",
+      "merchant_id": "MERCH-CRYPTO-COLLUSION-99",
+      "accounts": [
+        "ACC-COLLUDE-001",
+        "ACC-COLLUDE-002",
+        "ACC-COLLUDE-003"
+      ]
+    },
+    {
+      "name": "Scenario 5: Multi-hop Layering / Transaction Chain",
+      "description": "Fund hop chain: ACC-CHAIN-SOURCE-501 -> ACC-CHAIN-MULE-502 -> ACC-CHAIN-MULE-503 -> MERCH-OFFSHORE-504.",
+      "path": [
+        "ACC-CHAIN-SOURCE-501",
+        "TXN-CHAIN-HOP-1",
+        "ACC-CHAIN-MULE-502",
+        "TXN-CHAIN-HOP-2",
+        "ACC-CHAIN-MULE-503",
+        "TXN-CHAIN-HOP-3",
+        "MERCH-OFFSHORE-504"
+      ]
+    }
+  ],
+  "vertices": {
+    "Customer": [
+      {
+        "id": "CUST-NORM-001",
+        "name": "Regular Customer 1",
+        "ssn_hash": "SYNTH_HASH_29B36E9AAAD5A29F",
+        "email": "customer.001@example.test",
+        "risk_score": 0.15,
+        "created_at": "2026-03-14T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-002",
+        "name": "Regular Customer 2",
+        "ssn_hash": "SYNTH_HASH_F6DDE2B936C51376",
+        "email": "customer.002@example.test",
+        "risk_score": 0.16,
+        "created_at": "2026-03-04T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-003",
+        "name": "Regular Customer 3",
+        "ssn_hash": "SYNTH_HASH_1905BBC2F7737322",
+        "email": "customer.003@example.test",
+        "risk_score": 0.11,
+        "created_at": "2026-02-22T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-004",
+        "name": "Regular Customer 4",
+        "ssn_hash": "SYNTH_HASH_277ABC482EBCA99A",
+        "email": "customer.004@example.test",
+        "risk_score": 0.05,
+        "created_at": "2026-02-12T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-005",
+        "name": "Regular Customer 5",
+        "ssn_hash": "SYNTH_HASH_C391587078AF3576",
+        "email": "customer.005@example.test",
+        "risk_score": 0.08,
+        "created_at": "2026-02-02T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-006",
+        "name": "Regular Customer 6",
+        "ssn_hash": "SYNTH_HASH_0C0F7A8529E5F779",
+        "email": "customer.006@example.test",
+        "risk_score": 0.17,
+        "created_at": "2026-01-23T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-007",
+        "name": "Regular Customer 7",
+        "ssn_hash": "SYNTH_HASH_9284239AB528E74A",
+        "email": "customer.007@example.test",
+        "risk_score": 0.19,
+        "created_at": "2026-01-13T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-008",
+        "name": "Regular Customer 8",
+        "ssn_hash": "SYNTH_HASH_72A971C6B03B7ED9",
+        "email": "customer.008@example.test",
+        "risk_score": 0.18,
+        "created_at": "2026-01-03T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-009",
+        "name": "Regular Customer 9",
+        "ssn_hash": "SYNTH_HASH_EEE2858AC440823B",
+        "email": "customer.009@example.test",
+        "risk_score": 0.13,
+        "created_at": "2025-12-24T12:00:00Z"
+      },
+      {
+        "id": "CUST-NORM-010",
+        "name": "Regular Customer 10",
+        "ssn_hash": "SYNTH_HASH_2006382A2407669B",
+        "email": "customer.010@example.test",
+        "risk_score": 0.17,
+        "created_at": "2025-12-14T12:00:00Z"
+      },
+      {
+        "id": "CUST-RING-001",
+        "name": "Syndicate Identity 1",
+        "ssn_hash": "SYNTH_HASH_3462FFB662B2C9AC",
+        "email": "syndicate.001@example.test",
+        "risk_score": 0.88,
+        "created_at": "2026-09-04T12:00:00Z"
+      },
+      {
+        "id": "CUST-RING-002",
+        "name": "Syndicate Identity 2",
+        "ssn_hash": "SYNTH_HASH_B82D0F813E2C3EFD",
+        "email": "syndicate.002@example.test",
+        "risk_score": 0.88,
+        "created_at": "2026-09-03T12:00:00Z"
+      },
+      {
+        "id": "CUST-RING-003",
+        "name": "Syndicate Identity 3",
+        "ssn_hash": "SYNTH_HASH_58459BE86CAD8FD8",
+        "email": "syndicate.003@example.test",
+        "risk_score": 0.88,
+        "created_at": "2026-09-02T12:00:00Z"
+      },
+      {
+        "id": "CUST-RING-004",
+        "name": "Syndicate Identity 4",
+        "ssn_hash": "SYNTH_HASH_36338E2DA813B96A",
+        "email": "syndicate.004@example.test",
+        "risk_score": 0.88,
+        "created_at": "2026-09-01T12:00:00Z"
+      },
+      {
+        "id": "CUST-PROXY-001",
+        "name": "Proxy Cluster Holder 1",
+        "ssn_hash": "SYNTH_HASH_D1BD84623EA4D04A",
+        "email": "proxy.holder.001@example.test",
+        "risk_score": 0.92,
+        "created_at": "2026-09-14T12:00:00Z"
+      },
+      {
+        "id": "CUST-PROXY-002",
+        "name": "Proxy Cluster Holder 2",
+        "ssn_hash": "SYNTH_HASH_6EA3428C5CB8230C",
+        "email": "proxy.holder.002@example.test",
+        "risk_score": 0.92,
+        "created_at": "2026-09-13T12:00:00Z"
+      },
+      {
+        "id": "CUST-PROXY-003",
+        "name": "Proxy Cluster Holder 3",
+        "ssn_hash": "SYNTH_HASH_DFA4A6D9AFC7E676",
+        "email": "proxy.holder.003@example.test",
+        "risk_score": 0.92,
+        "created_at": "2026-09-12T12:00:00Z"
+      },
+      {
+        "id": "CUST-COLLUDE-001",
+        "name": "Collusive Trader 1",
+        "ssn_hash": "SYNTH_HASH_061132AD8E748EC6",
+        "email": "trader.001@example.test",
+        "risk_score": 0.85,
+        "created_at": "2026-08-30T12:00:00Z"
+      },
+      {
+        "id": "CUST-COLLUDE-002",
+        "name": "Collusive Trader 2",
+        "ssn_hash": "SYNTH_HASH_6F3EBCB63AC71F40",
+        "email": "trader.002@example.test",
+        "risk_score": 0.85,
+        "created_at": "2026-08-29T12:00:00Z"
+      },
+      {
+        "id": "CUST-COLLUDE-003",
+        "name": "Collusive Trader 3",
+        "ssn_hash": "SYNTH_HASH_09ABC1291D43BA4E",
+        "email": "trader.003@example.test",
+        "risk_score": 0.85,
+        "created_at": "2026-08-28T12:00:00Z"
+      },
+      {
+        "id": "CUST-CHAIN-501",
+        "name": "Layering Entity 1",
+        "ssn_hash": "SYNTH_HASH_7A9F8B0BF84AE0D6",
+        "email": "entity.1@example.test",
+        "risk_score": 0.89,
+        "created_at": "2026-08-11T12:00:00Z"
+      },
+      {
+        "id": "CUST-CHAIN-502",
+        "name": "Layering Entity 2",
+        "ssn_hash": "SYNTH_HASH_FC50882759FA523C",
+        "email": "entity.2@example.test",
+        "risk_score": 0.92,
+        "created_at": "2026-08-11T12:00:00Z"
+      },
+      {
+        "id": "CUST-CHAIN-503",
+        "name": "Layering Entity 3",
+        "ssn_hash": "SYNTH_HASH_E5F29F5E23CDC3DC",
+        "email": "entity.3@example.test",
+        "risk_score": 0.95,
+        "created_at": "2026-08-11T12:00:00Z"
+      }
+    ],
+    "Account": [
+      {
+        "id": "ACC-NORM-001",
+        "account_number": "9900-4400-0001",
+        "account_type": "SAVINGS",
+        "balance": 1762.61,
+        "status": "ACTIVE",
+        "opened_date": "2026-03-14T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-002",
+        "account_number": "9900-4400-0002",
+        "account_type": "CHECKING",
+        "balance": 8605.34,
+        "status": "ACTIVE",
+        "opened_date": "2026-03-04T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-003",
+        "account_number": "9900-4400-0003",
+        "account_type": "SAVINGS",
+        "balance": 1812.87,
+        "status": "ACTIVE",
+        "opened_date": "2026-02-22T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-004",
+        "account_number": "9900-4400-0004",
+        "account_type": "CHECKING",
+        "balance": 3587.8,
+        "status": "ACTIVE",
+        "opened_date": "2026-02-12T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-005",
+        "account_number": "9900-4400-0005",
+        "account_type": "SAVINGS",
+        "balance": 7687.29,
+        "status": "ACTIVE",
+        "opened_date": "2026-02-02T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-006",
+        "account_number": "9900-4400-0006",
+        "account_type": "CHECKING",
+        "balance": 8830.46,
+        "status": "ACTIVE",
+        "opened_date": "2026-01-23T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-007",
+        "account_number": "9900-4400-0007",
+        "account_type": "SAVINGS",
+        "balance": 5034.24,
+        "status": "ACTIVE",
+        "opened_date": "2026-01-13T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-008",
+        "account_number": "9900-4400-0008",
+        "account_type": "CHECKING",
+        "balance": 7839.12,
+        "status": "ACTIVE",
+        "opened_date": "2026-01-03T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-009",
+        "account_number": "9900-4400-0009",
+        "account_type": "SAVINGS",
+        "balance": 11717.72,
+        "status": "ACTIVE",
+        "opened_date": "2025-12-24T12:00:00Z"
+      },
+      {
+        "id": "ACC-NORM-010",
+        "account_number": "9900-4400-0010",
+        "account_type": "CHECKING",
+        "balance": 7994.46,
+        "status": "ACTIVE",
+        "opened_date": "2025-12-14T12:00:00Z"
+      },
+      {
+        "id": "ACC-RING-001",
+        "account_number": "7700-1100-0001",
+        "account_type": "CHECKING",
+        "balance": 8400.0,
+        "status": "UNDER_INVESTIGATION",
+        "opened_date": "2026-09-04T12:00:00Z"
+      },
+      {
+        "id": "ACC-RING-002",
+        "account_number": "7700-1100-0002",
+        "account_type": "CHECKING",
+        "balance": 8400.0,
+        "status": "UNDER_INVESTIGATION",
+        "opened_date": "2026-09-03T12:00:00Z"
+      },
+      {
+        "id": "ACC-RING-003",
+        "account_number": "7700-1100-0003",
+        "account_type": "CHECKING",
+        "balance": 8400.0,
+        "status": "UNDER_INVESTIGATION",
+        "opened_date": "2026-09-02T12:00:00Z"
+      },
+      {
+        "id": "ACC-RING-004",
+        "account_number": "7700-1100-0004",
+        "account_type": "CHECKING",
+        "balance": 8400.0,
+        "status": "UNDER_INVESTIGATION",
+        "opened_date": "2026-09-01T12:00:00Z"
+      },
+      {
+        "id": "ACC-PROXY-001",
+        "account_number": "8800-3300-0001",
+        "account_type": "CHECKING",
+        "balance": 4100.0,
+        "status": "LOCKED",
+        "opened_date": "2026-09-14T12:00:00Z"
+      },
+      {
+        "id": "ACC-PROXY-002",
+        "account_number": "8800-3300-0002",
+        "account_type": "CHECKING",
+        "balance": 4100.0,
+        "status": "LOCKED",
+        "opened_date": "2026-09-13T12:00:00Z"
+      },
+      {
+        "id": "ACC-PROXY-003",
+        "account_number": "8800-3300-0003",
+        "account_type": "CHECKING",
+        "balance": 4100.0,
+        "status": "LOCKED",
+        "opened_date": "2026-09-12T12:00:00Z"
+      },
+      {
+        "id": "ACC-COLLUDE-001",
+        "account_number": "6600-9900-0001",
+        "account_type": "CHECKING",
+        "balance": 28500.0,
+        "status": "ACTIVE",
+        "opened_date": "2026-08-30T12:00:00Z"
+      },
+      {
+        "id": "ACC-COLLUDE-002",
+        "account_number": "6600-9900-0002",
+        "account_type": "CHECKING",
+        "balance": 28500.0,
+        "status": "ACTIVE",
+        "opened_date": "2026-08-29T12:00:00Z"
+      },
+      {
+        "id": "ACC-COLLUDE-003",
+        "account_number": "6600-9900-0003",
+        "account_type": "CHECKING",
+        "balance": 28500.0,
+        "status": "ACTIVE",
+        "opened_date": "2026-08-28T12:00:00Z"
+      },
+      {
+        "id": "ACC-CHAIN-SOURCE-501",
+        "account_number": "5500-1100-501",
+        "account_type": "CHECKING",
+        "balance": 15000.0,
+        "status": "ACTIVE",
+        "opened_date": "2026-08-11T12:00:00Z"
+      },
+      {
+        "id": "ACC-CHAIN-MULE-502",
+        "account_number": "5500-1100-502",
+        "account_type": "CHECKING",
+        "balance": 15000.0,
+        "status": "ACTIVE",
+        "opened_date": "2026-08-11T12:00:00Z"
+      },
+      {
+        "id": "ACC-CHAIN-MULE-503",
+        "account_number": "5500-1100-503",
+        "account_type": "CHECKING",
+        "balance": 15000.0,
+        "status": "ACTIVE",
+        "opened_date": "2026-08-11T12:00:00Z"
+      }
+    ],
+    "Transaction": [
+      {
+        "id": "TXN-NORM-001-1",
+        "amount": 53.29,
+        "currency": "USD",
+        "timestamp": "2026-09-19T11:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-001-2",
+        "amount": 46.74,
+        "currency": "USD",
+        "timestamp": "2026-09-18T11:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-002-1",
+        "amount": 131.36,
+        "currency": "USD",
+        "timestamp": "2026-09-19T10:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-002-2",
+        "amount": 29.5,
+        "currency": "USD",
+        "timestamp": "2026-09-18T10:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-003-1",
+        "amount": 46.16,
+        "currency": "USD",
+        "timestamp": "2026-09-19T09:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-003-2",
+        "amount": 82.43,
+        "currency": "USD",
+        "timestamp": "2026-09-18T09:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-004-1",
+        "amount": 100.71,
+        "currency": "USD",
+        "timestamp": "2026-09-19T08:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-004-2",
+        "amount": 87.44,
+        "currency": "USD",
+        "timestamp": "2026-09-18T08:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-005-1",
+        "amount": 120.89,
+        "currency": "USD",
+        "timestamp": "2026-09-19T07:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-005-2",
+        "amount": 19.32,
+        "currency": "USD",
+        "timestamp": "2026-09-18T07:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-006-1",
+        "amount": 61.54,
+        "currency": "USD",
+        "timestamp": "2026-09-19T06:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-006-2",
+        "amount": 38.17,
+        "currency": "USD",
+        "timestamp": "2026-09-18T06:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-007-1",
+        "amount": 30.23,
+        "currency": "USD",
+        "timestamp": "2026-09-19T05:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-007-2",
+        "amount": 30.73,
+        "currency": "USD",
+        "timestamp": "2026-09-18T05:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-008-1",
+        "amount": 120.6,
+        "currency": "USD",
+        "timestamp": "2026-09-19T04:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-008-2",
+        "amount": 110.81,
+        "currency": "USD",
+        "timestamp": "2026-09-18T04:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-009-1",
+        "amount": 66.38,
+        "currency": "USD",
+        "timestamp": "2026-09-19T03:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-009-2",
+        "amount": 88.33,
+        "currency": "USD",
+        "timestamp": "2026-09-18T03:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-NORM-010-1",
+        "amount": 127.51,
+        "currency": "USD",
+        "timestamp": "2026-09-19T02:00:00Z",
+        "status": "COMPLETED",
+        "channel": "POS"
+      },
+      {
+        "id": "TXN-NORM-010-2",
+        "amount": 91.54,
+        "currency": "USD",
+        "timestamp": "2026-09-18T02:00:00Z",
+        "status": "COMPLETED",
+        "channel": "ONLINE"
+      },
+      {
+        "id": "TXN-RING-001",
+        "amount": 2450.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:50:00Z",
+        "status": "FLAGGED",
+        "channel": "MOBILE_APP"
+      },
+      {
+        "id": "TXN-RING-002",
+        "amount": 2450.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:40:00Z",
+        "status": "FLAGGED",
+        "channel": "MOBILE_APP"
+      },
+      {
+        "id": "TXN-RING-003",
+        "amount": 2450.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:30:00Z",
+        "status": "FLAGGED",
+        "channel": "MOBILE_APP"
+      },
+      {
+        "id": "TXN-RING-004",
+        "amount": 2450.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:20:00Z",
+        "status": "FLAGGED",
+        "channel": "MOBILE_APP"
+      },
+      {
+        "id": "TXN-PROXY-001",
+        "amount": 19.09,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:56:00Z",
+        "status": "FLAGGED",
+        "channel": "WEB"
+      },
+      {
+        "id": "TXN-PROXY-002",
+        "amount": 5.92,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:52:00Z",
+        "status": "FLAGGED",
+        "channel": "WEB"
+      },
+      {
+        "id": "TXN-PROXY-003",
+        "amount": 9.56,
+        "currency": "USD",
+        "timestamp": "2026-09-20T11:48:00Z",
+        "status": "FLAGGED",
+        "channel": "WEB"
+      },
+      {
+        "id": "TXN-COLLUDE-001-1",
+        "amount": 9650.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T08:40:00Z",
+        "status": "FLAGGED",
+        "channel": "WIRE"
+      },
+      {
+        "id": "TXN-COLLUDE-001-2",
+        "amount": 9800.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T08:20:00Z",
+        "status": "FLAGGED",
+        "channel": "WIRE"
+      },
+      {
+        "id": "TXN-COLLUDE-002-1",
+        "amount": 9650.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T05:40:00Z",
+        "status": "FLAGGED",
+        "channel": "WIRE"
+      },
+      {
+        "id": "TXN-COLLUDE-002-2",
+        "amount": 9800.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T05:20:00Z",
+        "status": "FLAGGED",
+        "channel": "WIRE"
+      },
+      {
+        "id": "TXN-COLLUDE-003-1",
+        "amount": 9650.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T02:40:00Z",
+        "status": "FLAGGED",
+        "channel": "WIRE"
+      },
+      {
+        "id": "TXN-COLLUDE-003-2",
+        "amount": 9800.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T02:20:00Z",
+        "status": "FLAGGED",
+        "channel": "WIRE"
+      },
+      {
+        "id": "TXN-CHAIN-HOP-1",
+        "amount": 25000.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T06:00:00Z",
+        "status": "COMPLETED",
+        "channel": "P2P_TRANSFER"
+      },
+      {
+        "id": "TXN-CHAIN-HOP-2",
+        "amount": 24200.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T08:00:00Z",
+        "status": "COMPLETED",
+        "channel": "P2P_TRANSFER"
+      },
+      {
+        "id": "TXN-CHAIN-HOP-3",
+        "amount": 23500.0,
+        "currency": "USD",
+        "timestamp": "2026-09-20T10:00:00Z",
+        "status": "FLAGGED",
+        "channel": "SWIFT_WIRE"
+      }
+    ],
+    "Card": [
+      {
+        "id": "CARD-NORM-001",
+        "card_number_masked": "4111-22XX-XXXX-1001",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-002",
+        "card_number_masked": "4111-22XX-XXXX-1002",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-003",
+        "card_number_masked": "4111-22XX-XXXX-1003",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-004",
+        "card_number_masked": "4111-22XX-XXXX-1004",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-005",
+        "card_number_masked": "4111-22XX-XXXX-1005",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-006",
+        "card_number_masked": "4111-22XX-XXXX-1006",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-007",
+        "card_number_masked": "4111-22XX-XXXX-1007",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-008",
+        "card_number_masked": "4111-22XX-XXXX-1008",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-009",
+        "card_number_masked": "4111-22XX-XXXX-1009",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-NORM-010",
+        "card_number_masked": "4111-22XX-XXXX-1010",
+        "card_type": "VISA_DEBIT",
+        "expiration_date": "12/28"
+      },
+      {
+        "id": "CARD-RING-001",
+        "card_number_masked": "5424-99XX-XXXX-2001",
+        "card_type": "MASTERCARD_CREDIT",
+        "expiration_date": "08/27"
+      },
+      {
+        "id": "CARD-RING-002",
+        "card_number_masked": "5424-99XX-XXXX-2002",
+        "card_type": "MASTERCARD_CREDIT",
+        "expiration_date": "08/27"
+      },
+      {
+        "id": "CARD-RING-003",
+        "card_number_masked": "5424-99XX-XXXX-2003",
+        "card_type": "MASTERCARD_CREDIT",
+        "expiration_date": "08/27"
+      },
+      {
+        "id": "CARD-RING-004",
+        "card_number_masked": "5424-99XX-XXXX-2004",
+        "card_type": "MASTERCARD_CREDIT",
+        "expiration_date": "08/27"
+      }
+    ],
+    "Device": [
+      {
+        "id": "DEV-NORM-001",
+        "device_fingerprint": "SYNTH_HASH_93AECC1F58716132",
+        "device_type": "Mobile",
+        "os": "Android 14",
+        "browser": "Chrome Mobile",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-002",
+        "device_fingerprint": "SYNTH_HASH_8B8D038D5E442879",
+        "device_type": "Mobile",
+        "os": "iOS 17.4",
+        "browser": "Mobile Safari",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-003",
+        "device_fingerprint": "SYNTH_HASH_7563FA7CA951BCDD",
+        "device_type": "Mobile",
+        "os": "Android 14",
+        "browser": "Chrome Mobile",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-004",
+        "device_fingerprint": "SYNTH_HASH_D3A552894C5ED4D5",
+        "device_type": "Mobile",
+        "os": "iOS 17.4",
+        "browser": "Mobile Safari",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-005",
+        "device_fingerprint": "SYNTH_HASH_AC48F9EFC166EAFA",
+        "device_type": "Mobile",
+        "os": "Android 14",
+        "browser": "Chrome Mobile",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-006",
+        "device_fingerprint": "SYNTH_HASH_64EE5A0D469DAD10",
+        "device_type": "Mobile",
+        "os": "iOS 17.4",
+        "browser": "Mobile Safari",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-007",
+        "device_fingerprint": "SYNTH_HASH_E05C14AB6A7103DA",
+        "device_type": "Mobile",
+        "os": "Android 14",
+        "browser": "Chrome Mobile",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-008",
+        "device_fingerprint": "SYNTH_HASH_6B0E2E8DF6A13990",
+        "device_type": "Mobile",
+        "os": "iOS 17.4",
+        "browser": "Mobile Safari",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-009",
+        "device_fingerprint": "SYNTH_HASH_1FE51638BF79CA14",
+        "device_type": "Mobile",
+        "os": "Android 14",
+        "browser": "Chrome Mobile",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-NORM-010",
+        "device_fingerprint": "SYNTH_HASH_EA3569759FB47195",
+        "device_type": "Mobile",
+        "os": "iOS 17.4",
+        "browser": "Mobile Safari",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-ROOT-EMU-77",
+        "device_fingerprint": "SYNTH_HASH_A0757BF90B1E5DF5",
+        "device_type": "Emulator",
+        "os": "Android 10 (Rooted/Spoofed)",
+        "browser": "HeadlessChrome/112",
+        "is_emulator": true
+      },
+      {
+        "id": "DEV-PROXY-001",
+        "device_fingerprint": "SYNTH_HASH_AE7C621254A26617",
+        "device_type": "Desktop",
+        "os": "Linux x86_64",
+        "browser": "Firefox/115",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-PROXY-002",
+        "device_fingerprint": "SYNTH_HASH_ED14577810F0E3E0",
+        "device_type": "Desktop",
+        "os": "Linux x86_64",
+        "browser": "Firefox/115",
+        "is_emulator": false
+      },
+      {
+        "id": "DEV-PROXY-003",
+        "device_fingerprint": "SYNTH_HASH_5029BC2E326D96AE",
+        "device_type": "Desktop",
+        "os": "Linux x86_64",
+        "browser": "Firefox/115",
+        "is_emulator": false
+      }
+    ],
+    "IP": [
+      {
+        "id": "IP-NORM-001",
+        "ip_address": "192.0.2.11",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-002",
+        "ip_address": "192.0.2.12",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-003",
+        "ip_address": "192.0.2.13",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-004",
+        "ip_address": "192.0.2.14",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-005",
+        "ip_address": "192.0.2.15",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-006",
+        "ip_address": "192.0.2.16",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-007",
+        "ip_address": "192.0.2.17",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-008",
+        "ip_address": "192.0.2.18",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-009",
+        "ip_address": "192.0.2.19",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-NORM-010",
+        "ip_address": "192.0.2.20",
+        "asn": "AS64496",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-RING-001",
+        "ip_address": "198.51.100.21",
+        "asn": "AS64497",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-RING-002",
+        "ip_address": "198.51.100.22",
+        "asn": "AS64497",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-RING-003",
+        "ip_address": "198.51.100.23",
+        "asn": "AS64497",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-RING-004",
+        "ip_address": "198.51.100.24",
+        "asn": "AS64497",
+        "country": "US",
+        "is_proxy_vpn": false
+      },
+      {
+        "id": "IP-ANOMALY-PROXY-88",
+        "ip_address": "203.0.113.88",
+        "asn": "AS64498",
+        "country": "NL",
+        "is_proxy_vpn": true
+      }
+    ],
+    "Merchant": [
+      {
+        "id": "MERCH-GROCERY-01",
+        "name": "FreshMarket Supercenter",
+        "merchant_category_code": "5411",
+        "risk_level": "LOW"
+      },
+      {
+        "id": "MERCH-STREAM-02",
+        "name": "Nordic Stream Media",
+        "merchant_category_code": "4899",
+        "risk_level": "LOW"
+      },
+      {
+        "id": "MERCH-ECOM-03",
+        "name": "Global Retail Direct",
+        "merchant_category_code": "5311",
+        "risk_level": "LOW"
+      },
+      {
+        "id": "MERCH-TECH-04",
+        "name": "Apex Electronics Depot",
+        "merchant_category_code": "5732",
+        "risk_level": "MEDIUM"
+      },
+      {
+        "id": "MERCH-CRYPTO-COLLUSION-99",
+        "name": "BitVault OTC Escrow",
+        "merchant_category_code": "6051",
+        "risk_level": "CRITICAL"
+      },
+      {
+        "id": "MERCH-OFFSHORE-504",
+        "name": "Larnaca Liquidity Services",
+        "merchant_category_code": "6211",
+        "risk_level": "HIGH"
+      }
+    ]
+  },
+  "edges": {
+    "OWNS": [
+      {
+        "from_customer": "CUST-NORM-001",
+        "to_account": "ACC-NORM-001"
+      },
+      {
+        "from_customer": "CUST-NORM-002",
+        "to_account": "ACC-NORM-002"
+      },
+      {
+        "from_customer": "CUST-NORM-003",
+        "to_account": "ACC-NORM-003"
+      },
+      {
+        "from_customer": "CUST-NORM-004",
+        "to_account": "ACC-NORM-004"
+      },
+      {
+        "from_customer": "CUST-NORM-005",
+        "to_account": "ACC-NORM-005"
+      },
+      {
+        "from_customer": "CUST-NORM-006",
+        "to_account": "ACC-NORM-006"
+      },
+      {
+        "from_customer": "CUST-NORM-007",
+        "to_account": "ACC-NORM-007"
+      },
+      {
+        "from_customer": "CUST-NORM-008",
+        "to_account": "ACC-NORM-008"
+      },
+      {
+        "from_customer": "CUST-NORM-009",
+        "to_account": "ACC-NORM-009"
+      },
+      {
+        "from_customer": "CUST-NORM-010",
+        "to_account": "ACC-NORM-010"
+      },
+      {
+        "from_customer": "CUST-RING-001",
+        "to_account": "ACC-RING-001"
+      },
+      {
+        "from_customer": "CUST-RING-002",
+        "to_account": "ACC-RING-002"
+      },
+      {
+        "from_customer": "CUST-RING-003",
+        "to_account": "ACC-RING-003"
+      },
+      {
+        "from_customer": "CUST-RING-004",
+        "to_account": "ACC-RING-004"
+      },
+      {
+        "from_customer": "CUST-PROXY-001",
+        "to_account": "ACC-PROXY-001"
+      },
+      {
+        "from_customer": "CUST-PROXY-002",
+        "to_account": "ACC-PROXY-002"
+      },
+      {
+        "from_customer": "CUST-PROXY-003",
+        "to_account": "ACC-PROXY-003"
+      },
+      {
+        "from_customer": "CUST-COLLUDE-001",
+        "to_account": "ACC-COLLUDE-001"
+      },
+      {
+        "from_customer": "CUST-COLLUDE-002",
+        "to_account": "ACC-COLLUDE-002"
+      },
+      {
+        "from_customer": "CUST-COLLUDE-003",
+        "to_account": "ACC-COLLUDE-003"
+      },
+      {
+        "from_customer": "CUST-CHAIN-501",
+        "to_account": "ACC-CHAIN-SOURCE-501"
+      },
+      {
+        "from_customer": "CUST-CHAIN-502",
+        "to_account": "ACC-CHAIN-MULE-502"
+      },
+      {
+        "from_customer": "CUST-CHAIN-503",
+        "to_account": "ACC-CHAIN-MULE-503"
+      }
+    ],
+    "MADE": [
+      {
+        "from_account": "ACC-NORM-001",
+        "to_transaction": "TXN-NORM-001-1"
+      },
+      {
+        "from_account": "ACC-NORM-001",
+        "to_transaction": "TXN-NORM-001-2"
+      },
+      {
+        "from_account": "ACC-NORM-002",
+        "to_transaction": "TXN-NORM-002-1"
+      },
+      {
+        "from_account": "ACC-NORM-002",
+        "to_transaction": "TXN-NORM-002-2"
+      },
+      {
+        "from_account": "ACC-NORM-003",
+        "to_transaction": "TXN-NORM-003-1"
+      },
+      {
+        "from_account": "ACC-NORM-003",
+        "to_transaction": "TXN-NORM-003-2"
+      },
+      {
+        "from_account": "ACC-NORM-004",
+        "to_transaction": "TXN-NORM-004-1"
+      },
+      {
+        "from_account": "ACC-NORM-004",
+        "to_transaction": "TXN-NORM-004-2"
+      },
+      {
+        "from_account": "ACC-NORM-005",
+        "to_transaction": "TXN-NORM-005-1"
+      },
+      {
+        "from_account": "ACC-NORM-005",
+        "to_transaction": "TXN-NORM-005-2"
+      },
+      {
+        "from_account": "ACC-NORM-006",
+        "to_transaction": "TXN-NORM-006-1"
+      },
+      {
+        "from_account": "ACC-NORM-006",
+        "to_transaction": "TXN-NORM-006-2"
+      },
+      {
+        "from_account": "ACC-NORM-007",
+        "to_transaction": "TXN-NORM-007-1"
+      },
+      {
+        "from_account": "ACC-NORM-007",
+        "to_transaction": "TXN-NORM-007-2"
+      },
+      {
+        "from_account": "ACC-NORM-008",
+        "to_transaction": "TXN-NORM-008-1"
+      },
+      {
+        "from_account": "ACC-NORM-008",
+        "to_transaction": "TXN-NORM-008-2"
+      },
+      {
+        "from_account": "ACC-NORM-009",
+        "to_transaction": "TXN-NORM-009-1"
+      },
+      {
+        "from_account": "ACC-NORM-009",
+        "to_transaction": "TXN-NORM-009-2"
+      },
+      {
+        "from_account": "ACC-NORM-010",
+        "to_transaction": "TXN-NORM-010-1"
+      },
+      {
+        "from_account": "ACC-NORM-010",
+        "to_transaction": "TXN-NORM-010-2"
+      },
+      {
+        "from_account": "ACC-RING-001",
+        "to_transaction": "TXN-RING-001"
+      },
+      {
+        "from_account": "ACC-RING-002",
+        "to_transaction": "TXN-RING-002"
+      },
+      {
+        "from_account": "ACC-RING-003",
+        "to_transaction": "TXN-RING-003"
+      },
+      {
+        "from_account": "ACC-RING-004",
+        "to_transaction": "TXN-RING-004"
+      },
+      {
+        "from_account": "ACC-PROXY-001",
+        "to_transaction": "TXN-PROXY-001"
+      },
+      {
+        "from_account": "ACC-PROXY-002",
+        "to_transaction": "TXN-PROXY-002"
+      },
+      {
+        "from_account": "ACC-PROXY-003",
+        "to_transaction": "TXN-PROXY-003"
+      },
+      {
+        "from_account": "ACC-COLLUDE-001",
+        "to_transaction": "TXN-COLLUDE-001-1"
+      },
+      {
+        "from_account": "ACC-COLLUDE-001",
+        "to_transaction": "TXN-COLLUDE-001-2"
+      },
+      {
+        "from_account": "ACC-COLLUDE-002",
+        "to_transaction": "TXN-COLLUDE-002-1"
+      },
+      {
+        "from_account": "ACC-COLLUDE-002",
+        "to_transaction": "TXN-COLLUDE-002-2"
+      },
+      {
+        "from_account": "ACC-COLLUDE-003",
+        "to_transaction": "TXN-COLLUDE-003-1"
+      },
+      {
+        "from_account": "ACC-COLLUDE-003",
+        "to_transaction": "TXN-COLLUDE-003-2"
+      },
+      {
+        "from_account": "ACC-CHAIN-SOURCE-501",
+        "to_transaction": "TXN-CHAIN-HOP-1"
+      },
+      {
+        "from_account": "ACC-CHAIN-MULE-502",
+        "to_transaction": "TXN-CHAIN-HOP-2"
+      },
+      {
+        "from_account": "ACC-CHAIN-MULE-503",
+        "to_transaction": "TXN-CHAIN-HOP-3"
+      }
+    ],
+    "USES_CARD": [
+      {
+        "from_account": "ACC-NORM-001",
+        "to_card": "CARD-NORM-001",
+        "since": "2026-03-14T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-002",
+        "to_card": "CARD-NORM-002",
+        "since": "2026-03-04T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-003",
+        "to_card": "CARD-NORM-003",
+        "since": "2026-02-22T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-004",
+        "to_card": "CARD-NORM-004",
+        "since": "2026-02-12T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-005",
+        "to_card": "CARD-NORM-005",
+        "since": "2026-02-02T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-006",
+        "to_card": "CARD-NORM-006",
+        "since": "2026-01-23T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-007",
+        "to_card": "CARD-NORM-007",
+        "since": "2026-01-13T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-008",
+        "to_card": "CARD-NORM-008",
+        "since": "2026-01-03T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-009",
+        "to_card": "CARD-NORM-009",
+        "since": "2025-12-24T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-010",
+        "to_card": "CARD-NORM-010",
+        "since": "2025-12-14T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-RING-001",
+        "to_card": "CARD-RING-001",
+        "since": "2026-09-04T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-RING-002",
+        "to_card": "CARD-RING-002",
+        "since": "2026-09-03T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-RING-003",
+        "to_card": "CARD-RING-003",
+        "since": "2026-09-02T12:00:00Z"
+      },
+      {
+        "from_account": "ACC-RING-004",
+        "to_card": "CARD-RING-004",
+        "since": "2026-09-01T12:00:00Z"
+      }
+    ],
+    "USES_DEVICE": [
+      {
+        "from_account": "ACC-NORM-001",
+        "to_device": "DEV-NORM-001",
+        "last_seen": "2026-09-20T11:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-002",
+        "to_device": "DEV-NORM-002",
+        "last_seen": "2026-09-20T10:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-003",
+        "to_device": "DEV-NORM-003",
+        "last_seen": "2026-09-20T09:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-004",
+        "to_device": "DEV-NORM-004",
+        "last_seen": "2026-09-20T08:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-005",
+        "to_device": "DEV-NORM-005",
+        "last_seen": "2026-09-20T07:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-006",
+        "to_device": "DEV-NORM-006",
+        "last_seen": "2026-09-20T06:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-007",
+        "to_device": "DEV-NORM-007",
+        "last_seen": "2026-09-20T05:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-008",
+        "to_device": "DEV-NORM-008",
+        "last_seen": "2026-09-20T04:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-009",
+        "to_device": "DEV-NORM-009",
+        "last_seen": "2026-09-20T03:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-010",
+        "to_device": "DEV-NORM-010",
+        "last_seen": "2026-09-20T02:00:00Z"
+      },
+      {
+        "from_account": "ACC-RING-001",
+        "to_device": "DEV-ROOT-EMU-77",
+        "last_seen": "2026-09-20T11:45:00Z"
+      },
+      {
+        "from_account": "ACC-RING-002",
+        "to_device": "DEV-ROOT-EMU-77",
+        "last_seen": "2026-09-20T11:30:00Z"
+      },
+      {
+        "from_account": "ACC-RING-003",
+        "to_device": "DEV-ROOT-EMU-77",
+        "last_seen": "2026-09-20T11:15:00Z"
+      },
+      {
+        "from_account": "ACC-RING-004",
+        "to_device": "DEV-ROOT-EMU-77",
+        "last_seen": "2026-09-20T11:00:00Z"
+      },
+      {
+        "from_account": "ACC-PROXY-001",
+        "to_device": "DEV-PROXY-001",
+        "last_seen": "2026-09-20T11:55:00Z"
+      },
+      {
+        "from_account": "ACC-PROXY-002",
+        "to_device": "DEV-PROXY-002",
+        "last_seen": "2026-09-20T11:50:00Z"
+      },
+      {
+        "from_account": "ACC-PROXY-003",
+        "to_device": "DEV-PROXY-003",
+        "last_seen": "2026-09-20T11:45:00Z"
+      }
+    ],
+    "CONNECTED_FROM": [
+      {
+        "from_account": "ACC-NORM-001",
+        "to_ip": "IP-NORM-001",
+        "timestamp": "2026-09-20T11:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-002",
+        "to_ip": "IP-NORM-002",
+        "timestamp": "2026-09-20T10:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-003",
+        "to_ip": "IP-NORM-003",
+        "timestamp": "2026-09-20T09:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-004",
+        "to_ip": "IP-NORM-004",
+        "timestamp": "2026-09-20T08:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-005",
+        "to_ip": "IP-NORM-005",
+        "timestamp": "2026-09-20T07:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-006",
+        "to_ip": "IP-NORM-006",
+        "timestamp": "2026-09-20T06:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-007",
+        "to_ip": "IP-NORM-007",
+        "timestamp": "2026-09-20T05:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-008",
+        "to_ip": "IP-NORM-008",
+        "timestamp": "2026-09-20T04:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-009",
+        "to_ip": "IP-NORM-009",
+        "timestamp": "2026-09-20T03:00:00Z"
+      },
+      {
+        "from_account": "ACC-NORM-010",
+        "to_ip": "IP-NORM-010",
+        "timestamp": "2026-09-20T02:00:00Z"
+      },
+      {
+        "from_account": "ACC-RING-001",
+        "to_ip": "IP-RING-001",
+        "timestamp": "2026-09-20T11:45:00Z"
+      },
+      {
+        "from_account": "ACC-RING-002",
+        "to_ip": "IP-RING-002",
+        "timestamp": "2026-09-20T11:30:00Z"
+      },
+      {
+        "from_account": "ACC-RING-003",
+        "to_ip": "IP-RING-003",
+        "timestamp": "2026-09-20T11:15:00Z"
+      },
+      {
+        "from_account": "ACC-RING-004",
+        "to_ip": "IP-RING-004",
+        "timestamp": "2026-09-20T11:00:00Z"
+      },
+      {
+        "from_account": "ACC-PROXY-001",
+        "to_ip": "IP-ANOMALY-PROXY-88",
+        "timestamp": "2026-09-20T11:55:00Z"
+      },
+      {
+        "from_account": "ACC-PROXY-002",
+        "to_ip": "IP-ANOMALY-PROXY-88",
+        "timestamp": "2026-09-20T11:50:00Z"
+      },
+      {
+        "from_account": "ACC-PROXY-003",
+        "to_ip": "IP-ANOMALY-PROXY-88",
+        "timestamp": "2026-09-20T11:45:00Z"
+      }
+    ],
+    "PAID_TO": [
+      {
+        "from_transaction": "TXN-NORM-001-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-001-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-002-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-002-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-003-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-003-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-004-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-004-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-005-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-005-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-006-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-006-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-007-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-007-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-008-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-008-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-009-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-009-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-NORM-010-1",
+        "to_merchant": "MERCH-GROCERY-01"
+      },
+      {
+        "from_transaction": "TXN-NORM-010-2",
+        "to_merchant": "MERCH-STREAM-02"
+      },
+      {
+        "from_transaction": "TXN-RING-001",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-RING-002",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-RING-003",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-RING-004",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-PROXY-001",
+        "to_merchant": "MERCH-ECOM-03"
+      },
+      {
+        "from_transaction": "TXN-PROXY-002",
+        "to_merchant": "MERCH-ECOM-03"
+      },
+      {
+        "from_transaction": "TXN-PROXY-003",
+        "to_merchant": "MERCH-ECOM-03"
+      },
+      {
+        "from_transaction": "TXN-COLLUDE-001-1",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-COLLUDE-001-2",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-COLLUDE-002-1",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-COLLUDE-002-2",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-COLLUDE-003-1",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-COLLUDE-003-2",
+        "to_merchant": "MERCH-CRYPTO-COLLUSION-99"
+      },
+      {
+        "from_transaction": "TXN-CHAIN-HOP-3",
+        "to_merchant": "MERCH-OFFSHORE-504"
+      }
+    ],
+    "RECEIVED_BY": [
+      {
+        "from_transaction": "TXN-CHAIN-HOP-1",
+        "to_account": "ACC-CHAIN-MULE-502"
+      },
+      {
+        "from_transaction": "TXN-CHAIN-HOP-2",
+        "to_account": "ACC-CHAIN-MULE-503"
+      }
+    ]
+  }
+}

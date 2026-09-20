@@ -1,0 +1,90 @@
+// ==============================================================================
+// TigerGraph GSQL Data Loading Job (Phase 2)
+// Graph Name: FraudNetworkGraph
+// ==============================================================================
+
+USE GRAPH FraudNetworkGraph
+
+CREATE LOADING JOB load_fraud_data FOR GRAPH FraudNetworkGraph {
+    // Vertex CSV files
+    DEFINE FILENAME f_customers;
+    DEFINE FILENAME f_accounts;
+    DEFINE FILENAME f_transactions;
+    DEFINE FILENAME f_cards;
+    DEFINE FILENAME f_devices;
+    DEFINE FILENAME f_ips;
+    DEFINE FILENAME f_merchants;
+
+    // Edge CSV files
+    DEFINE FILENAME f_owns;
+    DEFINE FILENAME f_made;
+    DEFINE FILENAME f_uses_card;
+    DEFINE FILENAME f_uses_device;
+    DEFINE FILENAME f_connected_from;
+    DEFINE FILENAME f_paid_to;
+    DEFINE FILENAME f_received_by;
+
+    // Load Vertices
+    LOAD f_customers TO VERTEX Customer VALUES ($"id", $"name", $"ssn_hash", $"email", $"risk_score", $"created_at") 
+        USING header="true", separator=",";
+
+    LOAD f_accounts TO VERTEX Account VALUES ($"id", $"account_number", $"account_type", $"balance", $"status", $"opened_date") 
+        USING header="true", separator=",";
+
+    LOAD f_transactions TO VERTEX Transaction VALUES ($"id", $"amount", $"currency", $"timestamp", $"status", $"channel") 
+        USING header="true", separator=",";
+
+    LOAD f_cards TO VERTEX Card VALUES ($"id", $"card_number_masked", $"card_type", $"expiration_date") 
+        USING header="true", separator=",";
+
+    LOAD f_devices TO VERTEX Device VALUES ($"id", $"device_fingerprint", $"device_type", $"os", $"browser", $"is_emulator") 
+        USING header="true", separator=",";
+
+    LOAD f_ips TO VERTEX IP VALUES ($"id", $"ip_address", $"asn", $"country", $"is_proxy_vpn") 
+        USING header="true", separator=",";
+
+    LOAD f_merchants TO VERTEX Merchant VALUES ($"id", $"name", $"merchant_category_code", $"risk_level") 
+        USING header="true", separator=",";
+
+    // Load Edges
+    LOAD f_owns TO EDGE OWNS VALUES ($"from_customer", $"to_account") 
+        USING header="true", separator=",";
+
+    LOAD f_made TO EDGE MADE VALUES ($"from_account", $"to_transaction") 
+        USING header="true", separator=",";
+
+    LOAD f_uses_card TO EDGE USES_CARD VALUES ($"from_account", $"to_card", $"since") 
+        USING header="true", separator=",";
+
+    LOAD f_uses_device TO EDGE USES_DEVICE VALUES ($"from_account", $"to_device", $"last_seen") 
+        USING header="true", separator=",";
+
+    LOAD f_connected_from TO EDGE CONNECTED_FROM VALUES ($"from_account", $"to_ip", $"timestamp") 
+        USING header="true", separator=",";
+
+    LOAD f_paid_to TO EDGE PAID_TO VALUES ($"from_transaction", $"to_merchant") 
+        USING header="true", separator=",";
+
+    LOAD f_received_by TO EDGE RECEIVED_BY VALUES ($"from_transaction", $"to_account") 
+        USING header="true", separator=",";
+}
+
+// ------------------------------------------------------------------------------
+// Instructions to Execute via GSQL Client:
+//
+// RUN LOADING JOB load_fraud_data USING
+//   f_customers="./data/raw/customers.csv",
+//   f_accounts="./data/raw/accounts.csv",
+//   f_transactions="./data/raw/transactions.csv",
+//   f_cards="./data/raw/cards.csv",
+//   f_devices="./data/raw/devices.csv",
+//   f_ips="./data/raw/ips.csv",
+//   f_merchants="./data/raw/merchants.csv",
+//   f_owns="./data/raw/customer_owns_account.csv",
+//   f_made="./data/raw/account_made_transaction.csv",
+//   f_uses_card="./data/raw/account_uses_card.csv",
+//   f_uses_device="./data/raw/account_uses_device.csv",
+//   f_connected_from="./data/raw/account_connected_from_ip.csv",
+//   f_paid_to="./data/raw/transaction_paid_to_merchant.csv",
+//   f_received_by="./data/raw/transaction_received_by_account.csv";
+// ------------------------------------------------------------------------------

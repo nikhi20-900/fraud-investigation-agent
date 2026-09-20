@@ -1,0 +1,7 @@
+id,name,merchant_category_code,risk_level
+MERCH-GROCERY-01,FreshMarket Supercenter,5411,LOW
+MERCH-STREAM-02,Nordic Stream Media,4899,LOW
+MERCH-ECOM-03,Global Retail Direct,5311,LOW
+MERCH-TECH-04,Apex Electronics Depot,5732,MEDIUM
+MERCH-CRYPTO-COLLUSION-99,BitVault OTC Escrow,6051,CRITICAL
+MERCH-OFFSHORE-504,Larnaca Liquidity Services,6211,HIGH
