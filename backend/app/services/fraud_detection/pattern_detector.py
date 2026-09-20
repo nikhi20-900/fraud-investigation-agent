@@ -18,6 +18,7 @@ from app.models.fraud import (
     PatternType,
     Severity,
     FraudFinding,
+    DetectorScore,
     AccountAnalysisResult,
     CaseFindingsResult,
 )
@@ -76,11 +77,7 @@ class PatternDetector:
                 )
 
                 emulator_str = " (Rooted Emulator)" if is_emulator else ""
-                other_accounts = [a for a in sharing_accounts if a != account_id]
-                explanation = (
-                    f"Account {account_id} shares hardware device {dev_id}{emulator_str} with "
-                    f"{len(other_accounts)} other distinct account(s) ({', '.join(other_accounts)})."
-                )
+                explanation = "Multiple accounts share the same device fingerprint."
 
                 return FraudFinding(
                     pattern=PatternType.SHARED_DEVICE_RING,
@@ -99,7 +96,7 @@ class PatternDetector:
     def detect_shared_ip_cluster(self, account_id: str) -> Optional[FraudFinding]:
         """
         Detects if account_id connects through an IP address shared across multiple accounts,
-        specifically evaluating anomalous proxy / VPN indicators.
+        or operates within an anomalous proxy / VPN exit node, or shares a /24 subnet cluster.
         """
         ip_edges = [
             e for e in self.graph.edges.get("CONNECTED_FROM", []) if e["from_account"] == account_id
@@ -107,6 +104,7 @@ class PatternDetector:
         if not ip_edges:
             return None
 
+        # 1. Exact IP sharing
         for ip_edge in ip_edges:
             ip_id = ip_edge["to_ip"]
             ip_obj = self.graph.vertices.get("IP", {}).get(ip_id, {})
@@ -120,7 +118,9 @@ class PatternDetector:
             if len(sharing_accounts) >= 2:
                 is_proxy_vpn = ip_obj.get("is_proxy_vpn", False)
                 ip_addr = ip_obj.get("ip_address", ip_id)
-                severity, confidence = evaluate_ip_cluster_severity(len(sharing_accounts), is_proxy_vpn)
+                severity, confidence = evaluate_ip_cluster_severity(
+                    account_count=len(sharing_accounts), is_proxy_vpn=is_proxy_vpn
+                )
 
                 entities = [account_id] + [a for a in sharing_accounts if a != account_id] + [ip_id]
                 evidence = EvidenceBuilder.ip_cluster(
@@ -146,6 +146,56 @@ class PatternDetector:
                     evidence=evidence,
                     explanation=explanation,
                 )
+
+        # 2. Subnet /24 clustering across accounts
+        for ip_edge in ip_edges:
+            ip_id = ip_edge["to_ip"]
+            ip_obj = self.graph.vertices.get("IP", {}).get(ip_id, {})
+            ip_addr = ip_obj.get("ip_address", "")
+            if "." in ip_addr:
+                prefix = ".".join(ip_addr.split(".")[:3])
+                subnet_accounts = set()
+                subnet_ips = set()
+                for other_edge in self.graph.edges.get("CONNECTED_FROM", []):
+                    other_ip_obj = self.graph.vertices.get("IP", {}).get(other_edge["to_ip"], {})
+                    other_addr = other_ip_obj.get("ip_address", "")
+                    if other_addr.startswith(prefix + "."):
+                        subnet_accounts.add(other_edge["from_account"])
+                        subnet_ips.add(other_edge["to_ip"])
+
+                if len(subnet_accounts) >= 3:
+                    # Require entity correlation (e.g. shared device or card) across accounts in subnet
+                    # to prevent false positives on regular residential ISP subnets
+                    seed_devices = {e["to_device"] for e in self.graph.edges.get("USES_DEVICE", []) if e["from_account"] == account_id}
+                    has_device_correlation = False
+                    for other_acc in subnet_accounts:
+                        if other_acc != account_id:
+                            other_devs = {e["to_device"] for e in self.graph.edges.get("USES_DEVICE", []) if e["from_account"] == other_acc}
+                            if seed_devices and seed_devices.intersection(other_devs):
+                                has_device_correlation = True
+                                break
+
+                    if has_device_correlation:
+                        sorted_accs = sorted(list(subnet_accounts))
+                        severity, confidence = evaluate_ip_cluster_severity(
+                            account_count=len(sorted_accs), is_subnet_cluster=True
+                        )
+                        entities = [account_id] + [a for a in sorted_accs if a != account_id] + sorted(list(subnet_ips))
+                        evidence = EvidenceBuilder.ip_subnet_cluster(
+                            subnet_prefix=prefix,
+                            account_count=len(sorted_accs),
+                            accounts=sorted_accs,
+                            sample_ips=sorted(list(subnet_ips)),
+                        )
+                        explanation = f"Account connects within an IP subnet cluster ({prefix}.0/24) correlated with shared hardware infrastructure across {len(sorted_accs)} accounts."
+                        return FraudFinding(
+                            pattern=PatternType.SHARED_IP_CLUSTER,
+                            severity=severity,
+                            confidence=confidence,
+                            entities=entities,
+                            evidence=evidence,
+                            explanation=explanation,
+                        )
 
         return None
 
@@ -410,49 +460,167 @@ class PatternDetector:
     def analyze_account(self, account_id: str) -> AccountAnalysisResult:
         """
         Runs all 6 fraud pattern detectors against account_id and aggregates findings.
+        Returns full scorecard across all 6 detectors (including CLEAR/LOW) and formatted tree.
         """
         findings: List[FraudFinding] = []
+        detector_scores: Dict[str, DetectorScore] = {}
 
         # 1. Shared Device Ring
         f1 = self.detect_shared_device_ring(account_id)
         if f1:
             findings.append(f1)
+            detector_scores[PatternType.SHARED_DEVICE_RING.value] = DetectorScore(
+                pattern=PatternType.SHARED_DEVICE_RING,
+                display_name="Shared Device Ring",
+                severity=f1.severity,
+                confidence=f1.confidence,
+                status="DETECTED",
+                finding=f1,
+            )
+        else:
+            detector_scores[PatternType.SHARED_DEVICE_RING.value] = DetectorScore(
+                pattern=PatternType.SHARED_DEVICE_RING,
+                display_name="Shared Device Ring",
+                severity=Severity.LOW,
+                confidence=0.05,
+                status="CLEAR",
+                finding=None,
+            )
 
         # 2. Shared IP Cluster
         f2 = self.detect_shared_ip_cluster(account_id)
         if f2:
             findings.append(f2)
+            detector_scores[PatternType.SHARED_IP_CLUSTER.value] = DetectorScore(
+                pattern=PatternType.SHARED_IP_CLUSTER,
+                display_name="Shared IP Cluster",
+                severity=f2.severity,
+                confidence=f2.confidence,
+                status="DETECTED",
+                finding=f2,
+            )
+        else:
+            detector_scores[PatternType.SHARED_IP_CLUSTER.value] = DetectorScore(
+                pattern=PatternType.SHARED_IP_CLUSTER,
+                display_name="Shared IP Cluster",
+                severity=Severity.LOW,
+                confidence=0.05,
+                status="CLEAR",
+                finding=None,
+            )
 
-        # 3. Transaction Layering
-        f3 = self.detect_transaction_layering(account_id)
-        if f3:
-            findings.append(f3)
-
-        # 4. Merchant Concentration
-        f4 = self.detect_merchant_concentration(account_id)
-        if f4:
-            findings.append(f4)
-
-        # 5. Transaction Velocity
+        # 3. Transaction Velocity
         f5 = self.detect_transaction_velocity(account_id)
         if f5:
             findings.append(f5)
+            detector_scores[PatternType.TRANSACTION_VELOCITY.value] = DetectorScore(
+                pattern=PatternType.TRANSACTION_VELOCITY,
+                display_name="Transaction Velocity",
+                severity=f5.severity,
+                confidence=f5.confidence,
+                status="DETECTED",
+                finding=f5,
+            )
+        else:
+            detector_scores[PatternType.TRANSACTION_VELOCITY.value] = DetectorScore(
+                pattern=PatternType.TRANSACTION_VELOCITY,
+                display_name="Transaction Velocity",
+                severity=Severity.LOW,
+                confidence=0.05,
+                status="CLEAR",
+                finding=None,
+            )
 
-        # 6. Multi-Account Ring
+        # 4. Multi-Account Ring
         f6 = self.detect_multi_account_ring(account_id)
         if f6:
             findings.append(f6)
+            detector_scores[PatternType.MULTI_ACCOUNT_RING.value] = DetectorScore(
+                pattern=PatternType.MULTI_ACCOUNT_RING,
+                display_name="Multi-Account Ring",
+                severity=f6.severity,
+                confidence=f6.confidence,
+                status="DETECTED",
+                finding=f6,
+            )
+        else:
+            detector_scores[PatternType.MULTI_ACCOUNT_RING.value] = DetectorScore(
+                pattern=PatternType.MULTI_ACCOUNT_RING,
+                display_name="Multi-Account Ring",
+                severity=Severity.LOW,
+                confidence=0.05,
+                status="CLEAR",
+                finding=None,
+            )
+
+        # 5. Layering (Transaction Layering)
+        f3 = self.detect_transaction_layering(account_id)
+        if f3:
+            findings.append(f3)
+            detector_scores[PatternType.TRANSACTION_LAYERING.value] = DetectorScore(
+                pattern=PatternType.TRANSACTION_LAYERING,
+                display_name="Transaction Layering",
+                severity=f3.severity,
+                confidence=f3.confidence,
+                status="DETECTED",
+                finding=f3,
+            )
+        else:
+            detector_scores[PatternType.TRANSACTION_LAYERING.value] = DetectorScore(
+                pattern=PatternType.TRANSACTION_LAYERING,
+                display_name="Transaction Layering",
+                severity=Severity.LOW,
+                confidence=0.05,
+                status="CLEAR",
+                finding=None,
+            )
+
+        # 6. Merchant Concentration
+        f4 = self.detect_merchant_concentration(account_id)
+        if f4:
+            findings.append(f4)
+            detector_scores[PatternType.MERCHANT_CONCENTRATION.value] = DetectorScore(
+                pattern=PatternType.MERCHANT_CONCENTRATION,
+                display_name="Merchant Concentration",
+                severity=f4.severity,
+                confidence=f4.confidence,
+                status="DETECTED",
+                finding=f4,
+            )
+        else:
+            detector_scores[PatternType.MERCHANT_CONCENTRATION.value] = DetectorScore(
+                pattern=PatternType.MERCHANT_CONCENTRATION,
+                display_name="Merchant Concentration",
+                severity=Severity.LOW,
+                confidence=0.05,
+                status="CLEAR",
+                finding=None,
+            )
 
         highest_sev = get_highest_severity([f.severity for f in findings])
+
+        # Generate structured ASCII tree aggregation
+        tree_lines = [
+            f"{account_id}",
+            "    │",
+            f"    ├── Shared Device Ring       {detector_scores[PatternType.SHARED_DEVICE_RING.value].severity.value}",
+            f"    ├── Shared IP Cluster        {detector_scores[PatternType.SHARED_IP_CLUSTER.value].severity.value}",
+            f"    ├── Transaction Velocity     {detector_scores[PatternType.TRANSACTION_VELOCITY.value].severity.value}",
+            f"    ├── Multi-Account Ring       {detector_scores[PatternType.MULTI_ACCOUNT_RING.value].severity.value}",
+            f"    └── Layering                 {detector_scores[PatternType.TRANSACTION_LAYERING.value].severity.value}",
+            "             ↓",
+            "       Investigation Findings",
+        ]
+        tree_view = "\n".join(tree_lines)
 
         if findings:
             patterns_detected = [f.pattern.value for f in findings]
             summary = (
-                f"Account {account_id} triggered {len(findings)} pattern finding(s): "
-                f"{', '.join(patterns_detected)} with highest severity {highest_sev.value}."
+                f"Account {account_id} evaluated across all 6 detectors: "
+                f"{', '.join(patterns_detected)} triggered with highest severity {highest_sev.value}."
             )
         else:
-            summary = f"No elevated fraud patterns detected for account {account_id} (Clean profile)."
+            summary = f"No elevated fraud patterns detected for account {account_id} (Clean profile across all 6 detectors)."
 
         return AccountAnalysisResult(
             account_id=account_id,
@@ -460,6 +628,8 @@ class PatternDetector:
             total_findings=len(findings),
             highest_severity=highest_sev,
             findings=findings,
+            detector_scores=detector_scores,
+            tree_view=tree_view,
             summary=summary,
         )
 

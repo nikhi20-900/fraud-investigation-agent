@@ -1,10 +1,18 @@
 """
 Severity & Evidentiary Confidence Calibration (Phase 3)
 
-NOTE ON CONFIDENCE VS PROBABILITY:
-In this forensic system, 'confidence' reflects evidentiary strength—i.e. how strongly
-the factual graph relationships and transaction telemetry corroborate the detected pattern.
-It is explicitly NOT a raw statistical probability of fraud.
+CRITICAL ARCHITECTURAL PRINCIPLE: CONFIDENCE ≠ PROBABILITY OF FRAUD
+In this investigation system, 'confidence' strictly measures evidentiary corroboration
+strength—i.e., how strongly empirical graph relationships, device telemetry, and transaction
+timelines substantiate the detected pattern.
+
+For example:
+    confidence: 0.91
+    means: "The available evidence strongly supports this detected pattern."
+    It does NOT mean: "There is a 91% probability this is fraud."
+
+Maintaining this distinction ensures defensible reasoning for human compliance officers
+and upstream LangGraph reasoning agents in Phase 4.
 """
 
 from typing import List, Dict, Any
@@ -40,27 +48,35 @@ def compute_pattern_confidence(
 
 def evaluate_device_ring_severity(account_count: int, is_emulator: bool) -> tuple[Severity, float]:
     """
-    Evaluates severity and evidence confidence for shared devices.
+    Evaluates severity and evidentiary confidence for shared devices.
+    Confidence represents pattern corroboration strength, NOT probability of fraud.
     """
     if is_emulator and account_count >= 4:
-        return Severity.HIGH, compute_pattern_confidence(0.85, corroborating_signals=2)
+        # 4 accounts sharing a single rooted emulator provides strong empirical evidence of a device ring
+        return Severity.HIGH, 0.91
     elif account_count >= 3:
-        return Severity.HIGH, compute_pattern_confidence(0.80, corroborating_signals=1)
+        return Severity.HIGH, 0.85
     elif account_count >= 2:
-        return Severity.MEDIUM, compute_pattern_confidence(0.70, corroborating_signals=0)
+        return Severity.MEDIUM, 0.70
     return Severity.LOW, 0.50
 
 
-def evaluate_ip_cluster_severity(account_count: int, is_proxy_vpn: bool) -> tuple[Severity, float]:
+def evaluate_ip_cluster_severity(
+    account_count: int,
+    is_proxy_vpn: bool = False,
+    is_subnet_cluster: bool = False,
+) -> tuple[Severity, float]:
     """
-    Evaluates severity and evidence confidence for shared IPs.
+    Evaluates severity and evidentiary confidence for shared IPs or subnet clusters.
     """
     if is_proxy_vpn and account_count >= 3:
-        return Severity.HIGH, compute_pattern_confidence(0.82, corroborating_signals=2)
+        return Severity.HIGH, 0.85
+    elif is_subnet_cluster:
+        return Severity.MEDIUM, 0.72
     elif account_count >= 3:
-        return Severity.MEDIUM, compute_pattern_confidence(0.75, corroborating_signals=1)
+        return Severity.MEDIUM, 0.75
     elif account_count >= 2:
-        return Severity.LOW, compute_pattern_confidence(0.65, corroborating_signals=0)
+        return Severity.MEDIUM, 0.68
     return Severity.LOW, 0.40
 
 

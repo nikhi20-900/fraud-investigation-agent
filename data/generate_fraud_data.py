@@ -254,6 +254,21 @@ for i in range(1, 5):
     edges["MADE"].append({"from_account": acc_id, "to_transaction": t_id})
     edges["PAID_TO"].append({"from_transaction": t_id, "to_merchant": "MERCH-CRYPTO-COLLUSION-99"})
 
+    if i == 1:
+        # Rapid burst velocity transactions on seed account ACC-RING-001
+        for suffix, mins, amt in [("B", 8, 2100.00), ("C", 5, 1950.00)]:
+            burst_tid = f"TXN-RING-{i:03d}-{suffix}"
+            vertices["Transaction"].append({
+                "id": burst_tid,
+                "amount": amt,
+                "currency": "USD",
+                "timestamp": (NOW - timedelta(minutes=mins)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "status": "FLAGGED",
+                "channel": "MOBILE_APP",
+            })
+            edges["MADE"].append({"from_account": acc_id, "to_transaction": burst_tid})
+            edges["PAID_TO"].append({"from_transaction": burst_tid, "to_merchant": "MERCH-CRYPTO-COLLUSION-99"})
+
 scenario_registry.append({
     "name": "Scenario 2: Shared Device Ring",
     "description": f"4 distinct accounts ({', '.join(shared_dev_accounts)}) all sharing a single rooted emulator ({shared_dev_id}).",
