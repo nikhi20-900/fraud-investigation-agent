@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ZoomIn,
   ZoomOut,
@@ -523,6 +524,27 @@ export const InvestigationGraph: React.FC<InvestigationGraphProps> = ({
               <div className="flex justify-between items-center py-1 border-b border-gray-100">
                 <span className="text-gray-500">Amount:</span>
                 <span className="font-mono text-gray-900">${activeSelected.amount.toLocaleString()}</span>
+              </div>
+            )}
+
+            {(activeSelected._type?.toLowerCase() === 'device' || activeSelected.device_type) && (
+              <div className="pt-2 border-t border-gray-100">
+                <Link
+                  to="/graph?query=shared-devices"
+                  className="w-full text-center py-1.5 px-2 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-medium text-[11px] border border-teal-200 block transition-colors"
+                >
+                  Explore Shared Device Ring &rarr;
+                </Link>
+              </div>
+            )}
+            {(activeSelected._type?.toLowerCase() === 'ip' || activeSelected.is_proxy_vpn !== undefined) && (
+              <div className="pt-2 border-t border-gray-100">
+                <Link
+                  to="/graph?query=shared-ips"
+                  className="w-full text-center py-1.5 px-2 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 font-medium text-[11px] border border-orange-200 block transition-colors"
+                >
+                  Explore Shared IP Cluster &rarr;
+                </Link>
               </div>
             )}
           </div>

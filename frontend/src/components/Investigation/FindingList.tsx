@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ShieldAlert, Filter } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ShieldCheck, ShieldAlert, Filter, Smartphone, Globe } from 'lucide-react';
 import { FindingCard } from './FindingCard';
 import type { FraudFinding } from '../../types';
 
@@ -54,6 +55,27 @@ export const FindingList: React.FC<FindingListProps> = ({ findings, onSelectEnti
           </div>
         )}
       </div>
+
+      {/* Graph Pivots Bar */}
+      {findings.length > 0 && (
+        <div className="flex items-center gap-2 pt-1 border-t border-gray-100 flex-wrap">
+          <span className="text-[11px] text-gray-400 font-medium">Graph Pivots:</span>
+          <Link
+            to="/graph?query=shared-devices"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-1 rounded-md transition-colors"
+          >
+            <Smartphone className="w-3 h-3 text-teal-600" />
+            <span>Shared Device</span>
+          </Link>
+          <Link
+            to="/graph?query=shared-ips"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2.5 py-1 rounded-md transition-colors"
+          >
+            <Globe className="w-3 h-3 text-orange-600" />
+            <span>Shared IP</span>
+          </Link>
+        </div>
+      )}
 
       {/* Findings Content */}
       {filtered.length === 0 ? (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { FileText, AlertTriangle, ShieldCheck, HelpCircle, Smartphone, Globe } from 'lucide-react';
 import type { EvidenceItem } from '../../types';
 
 interface EvidencePanelProps {
@@ -70,7 +71,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ evidence, uncertai
                 )} transition-colors text-xs`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-mono font-semibold text-gray-900">
                       {item.rule}
                     </span>
@@ -78,6 +79,26 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ evidence, uncertai
                       <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white border border-gray-200 text-gray-700">
                         {item.pattern}
                       </span>
+                    )}
+                    {(item.rule === 'DEVICE_SHARING_DETECTED' || item.pattern === 'SHARED_DEVICE_RING') && (
+                      <Link
+                        to="/graph?query=shared-devices"
+                        className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 inline-flex items-center gap-1 transition-colors"
+                        title="Explore Shared Device in Graph Explorer"
+                      >
+                        <Smartphone className="w-3 h-3 text-teal-600" />
+                        <span>Shared Device</span>
+                      </Link>
+                    )}
+                    {(item.rule === 'PROXY_IP_CLUSTER' || item.pattern === 'SHARED_IP_CLUSTER') && (
+                      <Link
+                        to="/graph?query=shared-ips"
+                        className="text-[10px] font-medium px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 inline-flex items-center gap-1 transition-colors"
+                        title="Explore Shared IP in Graph Explorer"
+                      >
+                        <Globe className="w-3 h-3 text-orange-600" />
+                        <span>Shared IP</span>
+                      </Link>
                     )}
                   </div>
                   {item.severity && (

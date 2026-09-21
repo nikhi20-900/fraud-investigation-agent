@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, ShieldAlert, Tag, Layers } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronDown, ChevronUp, ShieldAlert, Tag, Layers, Smartphone, Globe } from 'lucide-react';
 import type { FraudFinding } from '../../types';
 
 interface FindingCardProps {
@@ -34,9 +35,31 @@ export const FindingCard: React.FC<FindingCardProps> = ({ finding, onSelectEntit
             <ShieldAlert className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-[13px] font-semibold text-gray-900 tracking-tight">
-              {finding.pattern.replace(/_/g, ' ')}
-            </h4>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="text-[13px] font-semibold text-gray-900 tracking-tight">
+                {finding.pattern.replace(/_/g, ' ')}
+              </h4>
+              {finding.pattern === 'SHARED_DEVICE_RING' && (
+                <Link
+                  to="/graph?query=shared-devices"
+                  className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2 py-0.5 rounded-full transition-colors"
+                  title="Explore Shared Device in Graph Explorer"
+                >
+                  <Smartphone className="w-3 h-3 text-teal-600" />
+                  <span>Shared Device</span>
+                </Link>
+              )}
+              {finding.pattern === 'SHARED_IP_CLUSTER' && (
+                <Link
+                  to="/graph?query=shared-ips"
+                  className="inline-flex items-center gap-1 text-[10px] font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-full transition-colors"
+                  title="Explore Shared IP in Graph Explorer"
+                >
+                  <Globe className="w-3 h-3 text-orange-600" />
+                  <span>Shared IP</span>
+                </Link>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${getSeverityBadge(finding.severity)}`}>
                 {finding.severity}

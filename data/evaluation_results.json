@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-21T19:59:12.771901+00:00",
+  "timestamp": "2026-09-21T20:09:08.940812+00:00",
   "dataset": {
     "vertices": 133,
     "edges": 147,
@@ -636,50 +636,50 @@
         "scenario": "NORMAL",
         "account_id": "ACC-NORM-001",
         "case_id": "CASE-1002",
-        "min_ms": 2.353,
-        "max_ms": 2.678,
-        "mean_ms": 2.443,
-        "median_ms": 2.394,
+        "min_ms": 2.408,
+        "max_ms": 3.395,
+        "mean_ms": 2.809,
+        "median_ms": 2.451,
         "runs": 5
       },
       {
         "scenario": "RING",
         "account_id": "ACC-RING-001",
         "case_id": "CASE-1001",
-        "min_ms": 3.448,
-        "max_ms": 3.754,
-        "mean_ms": 3.571,
-        "median_ms": 3.509,
+        "min_ms": 3.54,
+        "max_ms": 3.744,
+        "mean_ms": 3.624,
+        "median_ms": 3.582,
         "runs": 5
       },
       {
         "scenario": "PROXY",
         "account_id": "ACC-PROXY-001",
         "case_id": "CASE-1002",
-        "min_ms": 3.181,
-        "max_ms": 3.348,
+        "min_ms": 3.133,
+        "max_ms": 3.603,
         "mean_ms": 3.269,
-        "median_ms": 3.242,
+        "median_ms": 3.16,
         "runs": 5
       },
       {
         "scenario": "LAYERING",
         "account_id": "ACC-CHAIN-SOURCE-501",
         "case_id": "CASE-1005",
-        "min_ms": 2.473,
-        "max_ms": 2.752,
-        "mean_ms": 2.572,
-        "median_ms": 2.554,
+        "min_ms": 2.312,
+        "max_ms": 2.38,
+        "mean_ms": 2.339,
+        "median_ms": 2.338,
         "runs": 5
       },
       {
         "scenario": "COLLUSION",
         "account_id": "ACC-COLLUDE-001",
         "case_id": "CASE-1004",
-        "min_ms": 3.178,
-        "max_ms": 3.5,
-        "mean_ms": 3.292,
-        "median_ms": 3.236,
+        "min_ms": 3.114,
+        "max_ms": 3.244,
+        "mean_ms": 3.178,
+        "median_ms": 3.189,
         "runs": 5
       }
     ],
@@ -688,42 +688,42 @@
         "min_ms": 0.007,
         "max_ms": 0.009,
         "mean_ms": 0.008,
-        "median_ms": 0.008,
+        "median_ms": 0.007,
         "runs": 5
       },
       "fraud_detection": {
-        "min_ms": 0.046,
-        "max_ms": 0.059,
-        "mean_ms": 0.05,
-        "median_ms": 0.048,
+        "min_ms": 0.044,
+        "max_ms": 0.053,
+        "mean_ms": 0.047,
+        "median_ms": 0.046,
         "runs": 5
       },
       "agent_investigation": {
-        "min_ms": 0.986,
-        "max_ms": 1.318,
-        "mean_ms": 1.148,
-        "median_ms": 1.191,
+        "min_ms": 0.961,
+        "max_ms": 1.079,
+        "mean_ms": 1.005,
+        "median_ms": 0.997,
         "runs": 5
       },
       "risk_calculation": {
-        "min_ms": 0.094,
-        "max_ms": 0.112,
-        "mean_ms": 0.101,
-        "median_ms": 0.099,
+        "min_ms": 0.104,
+        "max_ms": 0.11,
+        "mean_ms": 0.107,
+        "median_ms": 0.107,
         "runs": 5
       },
       "recommendation_generation": {
-        "min_ms": 0.197,
-        "max_ms": 0.223,
-        "mean_ms": 0.209,
-        "median_ms": 0.213,
+        "min_ms": 0.212,
+        "max_ms": 0.222,
+        "mean_ms": 0.218,
+        "median_ms": 0.221,
         "runs": 5
       },
       "full_integrated_pipeline": {
-        "min_ms": 3.46,
-        "max_ms": 3.762,
-        "mean_ms": 3.62,
-        "median_ms": 3.616,
+        "min_ms": 3.488,
+        "max_ms": 3.613,
+        "mean_ms": 3.565,
+        "median_ms": 3.589,
         "runs": 5
       }
     }

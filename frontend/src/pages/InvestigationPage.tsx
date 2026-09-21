@@ -7,6 +7,8 @@ import {
   RefreshCw,
   AlertTriangle,
   Sparkles,
+  Smartphone,
+  Globe,
 } from 'lucide-react';
 import {
   fetchCases,
@@ -315,7 +317,25 @@ export const InvestigationPage: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Link
+              to={`/graph?query=shared-devices&target=${selectedAccountId}`}
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-teal-50 text-teal-700 text-xs font-medium border border-teal-200/80 shadow-xs transition-all flex items-center gap-1.5"
+              title="Inspect Shared Device Ring in Graph Explorer"
+            >
+              <Smartphone className="w-4 h-4 text-teal-600" />
+              <span>Shared Device</span>
+            </Link>
+
+            <Link
+              to={`/graph?query=shared-ips&target=${selectedAccountId}`}
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200/80 shadow-xs transition-all flex items-center gap-1.5"
+              title="Inspect Shared IP Cluster in Graph Explorer"
+            >
+              <Globe className="w-4 h-4 text-orange-600" />
+              <span>Shared IP</span>
+            </Link>
+
             <Link
               to={`/graph?target=${selectedAccountId}`}
               className="px-3.5 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium border border-gray-200/80 shadow-xs transition-all flex items-center gap-2"
@@ -495,16 +515,34 @@ export const InvestigationPage: React.FC = () => {
 
       {/* 4. Interactive Neighborhood Graph */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center justify-between px-1 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Network className="w-4 h-4 text-blue-600" />
             <h2 className="text-[14px] font-semibold text-gray-900 tracking-tight">
               Target Entity Neighborhood Graph (2 Hops)
             </h2>
           </div>
-          <span className="text-xs text-gray-400">
-            Click any node to inspect telemetry or switch target
-          </span>
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/graph?query=shared-devices&target=${selectedAccountId}`}
+              className="px-2.5 py-1 rounded-lg bg-white hover:bg-teal-50 text-teal-700 text-xs font-medium border border-teal-200 shadow-2xs transition-all flex items-center gap-1.5"
+              title="Inspect Shared Device Ring in Graph Explorer"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-teal-600" />
+              <span>Shared Device</span>
+            </Link>
+            <Link
+              to={`/graph?query=shared-ips&target=${selectedAccountId}`}
+              className="px-2.5 py-1 rounded-lg bg-white hover:bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200 shadow-2xs transition-all flex items-center gap-1.5"
+              title="Inspect Shared IP Cluster in Graph Explorer"
+            >
+              <Globe className="w-3.5 h-3.5 text-orange-600" />
+              <span>Shared IP</span>
+            </Link>
+            <span className="text-xs text-gray-400 hidden md:inline ml-1">
+              • Click any node to inspect telemetry
+            </span>
+          </div>
         </div>
 
         <InvestigationGraph
