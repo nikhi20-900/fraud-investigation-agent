@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Database,
@@ -15,6 +15,7 @@ import {
   ArrowRight,
   AlertTriangle,
   RefreshCw,
+  Search,
 } from 'lucide-react';
 import {
   fetchGraphSummary,
@@ -59,43 +60,60 @@ export const normalizeQueryType = (raw?: string | null): QueryType | null => {
   return null;
 };
 
+const PRESET_TARGETS = [
+  { id: 'ACC-RING-001', label: 'ACC-RING-001 (Syndicate)' },
+  { id: 'ACC-NORM-001', label: 'ACC-NORM-001 (Clean)' },
+  { id: 'ACC-PROXY-001', label: 'ACC-PROXY-001 (Proxy Hop)' },
+  { id: 'ACC-CHAIN-SOURCE-501', label: 'ACC-CHAIN-SOURCE-501 (Layering)' },
+  { id: 'MERCH-CRYPTO-COLLUSION-99', label: 'MERCH-CRYPTO-99 (Merchant)' },
+];
+
 export const GraphExplorerPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // 1. URL Query and Target are the Single Source of Truth
   const rawQuery = searchParams.get('query');
   const rawTarget = searchParams.get('target');
 
-  const normalizedInitialQuery = normalizeQueryType(rawQuery);
-  const [activeQuery, setActiveQuery] = useState<QueryType | null>(normalizedInitialQuery);
-  const [targetId, setTargetId] = useState<string>(rawTarget || 'ACC-RING-001');
+  const activeQuery = useMemo(() => normalizeQueryType(rawQuery), [rawQuery]);
 
+  const defaultTargetForQuery = (q: QueryType | null): string => {
+    if (q === 'transaction_paths') return 'ACC-CHAIN-SOURCE-501';
+    if (q === 'merchant_relationships') return 'MERCH-CRYPTO-COLLUSION-99';
+    if (q === 'shared_ips') return 'ACC-PROXY-001';
+    return 'ACC-RING-001';
+  };
+
+  const targetId = useMemo(() => {
+    if (rawTarget && rawTarget.trim()) return rawTarget.trim();
+    return defaultTargetForQuery(activeQuery);
+  }, [rawTarget, activeQuery]);
+
+  // Local input state for typing before submission
+  const [targetInput, setTargetInput] = useState<string>(targetId);
+  const [minAccounts, setMinAccounts] = useState<number>(2);
+
+  // Sync local input when URL targetId changes
+  useEffect(() => {
+    setTargetInput(targetId);
+  }, [targetId]);
+
+  // Data and UI states
   const [graphSummary, setGraphSummary] = useState<GraphSummaryResponse | null>(null);
   const [queryResult, setQueryResult] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<any>(null);
 
-  // 1. Load summary on mount
+  // Load summary on mount
   useEffect(() => {
     fetchGraphSummary().then((data) => {
       if (data) setGraphSummary(data);
     });
   }, []);
 
-  // 2. Synchronize URL query/target params into component state
-  useEffect(() => {
-    const currentQuery = normalizeQueryType(searchParams.get('query'));
-    const currentTarget = searchParams.get('target');
-
-    if (currentQuery !== activeQuery) {
-      setActiveQuery(currentQuery);
-    }
-    if (currentTarget && currentTarget !== targetId) {
-      setTargetId(currentTarget);
-    }
-  }, [searchParams]);
-
-  // 3. Query executor
-  const executeQuery = useCallback(async (query: QueryType | null, target: string) => {
+  // 2. Query Executor — No silent [] fallback, handles explicit errors
+  const executeQuery = useCallback(async (query: QueryType | null, target: string, minAccs: number) => {
     if (!query) {
       setQueryResult(null);
       setSelectedNode(null);
@@ -111,9 +129,9 @@ export const GraphExplorerPage: React.FC = () => {
       if (query === 'neighborhood') {
         data = await fetchAccountNeighborhood(target || 'ACC-RING-001', 2);
       } else if (query === 'shared_devices') {
-        data = await fetchSharedDevices(2);
+        data = await fetchSharedDevices(minAccs);
       } else if (query === 'shared_ips') {
-        data = await fetchSharedIps(2);
+        data = await fetchSharedIps(minAccs);
       } else if (query === 'connected_accounts') {
         data = await fetchConnectedAccounts(target || 'ACC-RING-001');
       } else if (query === 'transaction_paths') {
@@ -124,7 +142,7 @@ export const GraphExplorerPage: React.FC = () => {
 
       setQueryResult(data);
 
-      // Auto-select first item for telemetry inspector
+      // Auto-select first item in result for the inspector panel
       if (Array.isArray(data) && data.length > 0) {
         setSelectedNode(data[0]);
       } else if (data?.nodes && data.nodes.length > 0) {
@@ -142,25 +160,41 @@ export const GraphExplorerPage: React.FC = () => {
     }
   }, []);
 
-  // 4. Trigger query when activeQuery or targetId changes
+  // 3. Changing target automatically refreshes target-dependent queries
   useEffect(() => {
     if (activeQuery) {
-      executeQuery(activeQuery, targetId);
+      executeQuery(activeQuery, targetId, minAccounts);
     } else {
       setQueryResult(null);
       setSelectedNode(null);
+      setError(null);
       setLoading(false);
     }
-  }, [activeQuery, targetId, executeQuery]);
+  }, [activeQuery, targetId, minAccounts, executeQuery]);
 
+  // URL State Mutators
   const handleSelectQuery = (query: QueryType) => {
-    setActiveQuery(query);
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.set('query', query.replace(/_/g, '-'));
-    if (targetId) {
-      nextParams.set('target', targetId);
-    }
-    setSearchParams(nextParams);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('query', query.replace(/_/g, '-'));
+      if (!next.has('target')) {
+        next.set('target', targetId);
+      }
+      return next;
+    });
+  };
+
+  const handleTargetCommit = (newTarget: string) => {
+    const trimmed = newTarget.trim();
+    if (!trimmed) return;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('target', trimmed);
+      if (activeQuery) {
+        next.set('query', activeQuery.replace(/_/g, '-'));
+      }
+      return next;
+    });
   };
 
   const handleScenarioPick = (scenarioName: string) => {
@@ -181,8 +215,6 @@ export const GraphExplorerPage: React.FC = () => {
       nextTarget = 'MERCH-CRYPTO-COLLUSION-99';
     }
 
-    setActiveQuery(nextQ);
-    setTargetId(nextTarget);
     setSearchParams({
       query: nextQ.replace(/_/g, '-'),
       target: nextTarget,
@@ -209,20 +241,24 @@ export const GraphExplorerPage: React.FC = () => {
   const getGsqlPreview = () => {
     switch (activeQuery) {
       case 'neighborhood':
-        return `RUN QUERY account_neighborhood("${targetId || 'ACC-RING-001'}", 2)`;
+        return `RUN QUERY account_neighborhood("${targetId}", 2)`;
       case 'shared_devices':
-        return `RUN QUERY find_shared_devices(2)`;
+        return `RUN QUERY find_shared_devices(${minAccounts})`;
       case 'shared_ips':
-        return `RUN QUERY find_shared_ips(2)`;
+        return `RUN QUERY find_shared_ips(${minAccounts})`;
       case 'connected_accounts':
-        return `RUN QUERY find_connected_accounts("${targetId || 'ACC-RING-001'}")`;
+        return `RUN QUERY find_connected_accounts("${targetId}")`;
       case 'transaction_paths':
-        return `RUN QUERY trace_transaction_paths("${targetId || 'ACC-CHAIN-SOURCE-501'}", 3)`;
+        return `RUN QUERY trace_transaction_paths("${targetId}", 3)`;
       case 'merchant_relationships':
-        return `RUN QUERY get_merchant_relationships("${targetId || 'MERCH-CRYPTO-COLLUSION-99'}")`;
+        return `RUN QUERY get_merchant_relationships("${targetId}")`;
       default:
         return 'GSQL ENGINE READY — SELECT QUERY';
     }
+  };
+
+  const isTargetDependent = (q: QueryType | null): boolean => {
+    return q === 'neighborhood' || q === 'connected_accounts' || q === 'transaction_paths' || q === 'merchant_relationships';
   };
 
   return (
@@ -248,10 +284,10 @@ export const GraphExplorerPage: React.FC = () => {
 
         {/* Quick Scenario Picker */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 font-medium">Scenarios:</span>
+          <span className="text-xs text-gray-500 font-medium">Scenario Shortcuts:</span>
           <select
             onChange={(e) => handleScenarioPick(e.target.value)}
-            className="bg-gray-100 border border-transparent rounded-lg px-3 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-blue-400 transition-all"
+            className="bg-gray-100 border border-transparent rounded-lg px-3 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-blue-400 transition-all font-medium"
             value={
               activeQuery === 'shared_devices'
                 ? 'Scenario 2'
@@ -298,35 +334,76 @@ export const GraphExplorerPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Target input if query needs seed */}
-        {(activeQuery === 'neighborhood' ||
-          activeQuery === 'connected_accounts' ||
-          activeQuery === 'transaction_paths' ||
-          activeQuery === 'merchant_relationships') && (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={targetId}
-              onChange={(e) => setTargetId(e.target.value)}
-              placeholder="Seed Target ID..."
-              className="bg-gray-100 border border-transparent rounded-lg px-3 py-1.5 text-xs text-gray-800 font-mono focus:outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all w-48"
-            />
+        {/* Dynamic Controls based on Query Type */}
+        {isTargetDependent(activeQuery) ? (
+          /* Target Account / Merchant Input with Instant Submission */
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleTargetCommit(targetInput);
+            }}
+            className="flex items-center gap-2"
+          >
+            <div className="relative">
+              <input
+                type="text"
+                value={targetInput}
+                onChange={(e) => setTargetInput(e.target.value)}
+                placeholder="Target ID (e.g. ACC-RING-001)..."
+                className="bg-gray-100 border border-transparent rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-800 font-mono focus:outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all w-52"
+              />
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5 pointer-events-none" />
+            </div>
             <button
-              onClick={() => executeQuery(activeQuery, targetId)}
+              type="submit"
               disabled={loading}
               className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors disabled:opacity-50"
-              title="Run Query"
+              title="Apply Target (Auto-refreshes query)"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
             </button>
+          </form>
+        ) : (activeQuery === 'shared_devices' || activeQuery === 'shared_ips') ? (
+          /* Shared Devices / Shared IPs Threshold Filter */
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium">Min Accounts Sharing:</span>
+            <select
+              value={minAccounts}
+              onChange={(e) => setMinAccounts(Number(e.target.value))}
+              className="bg-gray-100 border border-transparent rounded-lg px-2.5 py-1.5 text-xs text-gray-800 font-mono focus:outline-none focus:bg-white focus:border-blue-400 transition-all"
+            >
+              <option value={2}>2+ Accounts</option>
+              <option value={3}>3+ Accounts</option>
+              <option value={4}>4+ Accounts</option>
+            </select>
           </div>
-        )}
+        ) : null}
       </div>
+
+      {/* Target Presets Bar for Target-Dependent Queries */}
+      {isTargetDependent(activeQuery) && (
+        <div className="flex items-center gap-2 px-1 flex-wrap text-xs">
+          <span className="text-[11px] text-gray-400 font-medium">Target Presets:</span>
+          {PRESET_TARGETS.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => handleTargetCommit(preset.id)}
+              className={`text-[11px] font-mono px-2.5 py-1 rounded-lg border transition-all ${
+                targetId === preset.id
+                  ? 'bg-blue-600 text-white border-blue-600 font-semibold shadow-xs'
+                  : 'bg-white text-gray-700 border-gray-200/80 hover:bg-gray-50'
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Main Canvas & Inspector Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Cols: Query Results Visual Canvas */}
-        <div className="lg:col-span-2 bg-white border border-gray-200/60 rounded-2xl p-6 shadow-xs relative min-h-[520px] flex flex-col justify-between overflow-hidden">
+        <div className="lg:col-span-2 bg-white border border-gray-200/60 rounded-2xl p-6 shadow-xs relative min-h-[540px] flex flex-col justify-between overflow-hidden">
           {/* Canvas Sub-Header */}
           <div className="relative z-10 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -344,36 +421,65 @@ export const GraphExplorerPage: React.FC = () => {
             {loading ? (
               <div className="py-24 flex flex-col items-center justify-center space-y-3 text-center">
                 <div className="w-8 h-8 border-3 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-                <div className="text-xs text-gray-500 font-medium">Executing GSQL graph traversal query...</div>
+                <div className="text-xs text-gray-500 font-medium">
+                  Evaluating {getGsqlPreview()}...
+                </div>
               </div>
             ) : error ? (
-              /* 2. Error State */
-              <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 space-y-2">
-                <div className="flex items-center gap-2 font-semibold">
-                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-                  <span>Query Execution Failed</span>
+              /* 2. Explicit Failure + Retry State */
+              <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-red-950 space-y-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-red-950">
+                        {activeQuery === 'shared_devices'
+                          ? 'Shared Device Traversal Failed'
+                          : activeQuery === 'shared_ips'
+                          ? 'Shared IP Traversal Failed'
+                          : 'GSQL Query Execution Failed'}
+                      </h4>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 font-medium">
+                        Backend Error
+                      </span>
+                    </div>
+                    <p className="text-xs text-red-800/90 mt-1 leading-relaxed font-mono">
+                      {error}
+                    </p>
+                    <div className="text-[11px] font-mono text-red-700/80 mt-1">
+                      Query: <code className="bg-red-100/80 px-1.5 py-0.5 rounded">{getGsqlPreview()}</code>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-red-600 leading-relaxed">{error}</p>
-                <button
-                  onClick={() => executeQuery(activeQuery, targetId)}
-                  className="px-3 py-1.5 rounded-lg bg-white border border-red-300 text-red-700 hover:bg-red-50 font-medium inline-flex items-center gap-1.5 transition-colors"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Retry Query</span>
-                </button>
+
+                <div className="flex items-center gap-3 pt-2 border-t border-red-200/60">
+                  <button
+                    onClick={() => executeQuery(activeQuery, targetId, minAccounts)}
+                    disabled={loading}
+                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                    <span>Retry Query</span>
+                  </button>
+                  <span className="text-xs text-red-600">
+                    Check backend simulator logs or endpoint availability.
+                  </span>
+                </div>
               </div>
             ) : !activeQuery ? (
-              /* 3. Empty State / Query Catalog (when directly visiting /graph) */
+              /* 3. Empty State / Query Catalog (Direct navigation to /graph) */
               <div className="py-6 space-y-6">
                 <div className="text-center space-y-1.5 max-w-lg mx-auto">
                   <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-xs">
                     <Network className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-semibold text-gray-900 tracking-tight">
-                    Select a Graph Investigation Query
+                    Select a Graph Investigation Routine
                   </h3>
                   <p className="text-xs text-gray-500 leading-relaxed">
-                    Explore TigerGraph network topology across device rings, anomalous proxy IPs, multi-hop money muling cascades, and merchant collusion.
+                    Explore TigerGraph network topology across device rings, anomalous proxy IPs, multi-hop layering cascades, and merchant collusion.
                   </p>
                 </div>
 
@@ -500,14 +606,25 @@ export const GraphExplorerPage: React.FC = () => {
                 </div>
               </div>
             ) : activeQuery === 'shared_devices' ? (
-              /* 4. Shared Devices List */
+              /* 4. Shared Devices List or Explicit Empty State */
               !queryResult || queryResult.length === 0 ? (
-                <div className="py-20 text-center space-y-2">
-                  <Smartphone className="w-8 h-8 text-gray-400 mx-auto" />
-                  <div className="text-xs font-semibold text-gray-800">No Shared Devices Detected</div>
-                  <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
-                    No hardware fingerprints shared across 2 or more accounts were detected.
-                  </p>
+                <div className="py-20 text-center space-y-3 p-8 rounded-2xl bg-gray-50 border border-gray-100">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto">
+                    <Smartphone className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">No Shared Devices Found</h4>
+                    <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 leading-relaxed">
+                      Zero hardware fingerprints connected {minAccounts} or more accounts.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleScenarioPick('Scenario 2')}
+                    className="px-3.5 py-1.5 rounded-lg bg-white border border-teal-200 text-teal-700 text-xs font-medium hover:bg-teal-50 transition-colors shadow-2xs inline-flex items-center gap-1.5"
+                  >
+                    <span>Load Scenario 2 (Shared Device Ring)</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -531,7 +648,7 @@ export const GraphExplorerPage: React.FC = () => {
                             <div>
                               <div className="text-xs font-semibold text-gray-900 font-mono">{dev.device_id}</div>
                               <div className="text-[11px] text-gray-500">
-                                {dev.device_type} • {dev.is_emulator ? 'Rooted Emulator' : 'Physical Device'}
+                                {dev.device_type} • {dev.is_emulator ? 'Rooted Android Emulator' : 'Physical Device'}
                               </div>
                             </div>
                           </div>
@@ -553,14 +670,25 @@ export const GraphExplorerPage: React.FC = () => {
                 </div>
               )
             ) : activeQuery === 'shared_ips' ? (
-              /* 5. Shared IPs List */
+              /* 5. Shared IPs List or Explicit Empty State */
               !queryResult || queryResult.length === 0 ? (
-                <div className="py-20 text-center space-y-2">
-                  <Globe className="w-8 h-8 text-gray-400 mx-auto" />
-                  <div className="text-xs font-semibold text-gray-800">No Shared IP Clusters Detected</div>
-                  <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
-                    No network addresses connecting 2 or more accounts were detected.
-                  </p>
+                <div className="py-20 text-center space-y-3 p-8 rounded-2xl bg-gray-50 border border-gray-100">
+                  <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto">
+                    <Globe className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">No Shared IP Clusters Found</h4>
+                    <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 leading-relaxed">
+                      Zero network IP addresses connected {minAccounts} or more accounts.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleScenarioPick('Scenario 3')}
+                    className="px-3.5 py-1.5 rounded-lg bg-white border border-orange-200 text-orange-700 text-xs font-medium hover:bg-orange-50 transition-colors shadow-2xs inline-flex items-center gap-1.5"
+                  >
+                    <span>Load Scenario 3 (Proxy IP Cluster)</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -584,7 +712,7 @@ export const GraphExplorerPage: React.FC = () => {
                             <div>
                               <div className="text-xs font-semibold text-gray-900 font-mono">{ip.ip_address}</div>
                               <div className="text-[11px] text-gray-500">
-                                {ip.ip_id} • Country: {ip.country} • {ip.is_proxy_vpn ? 'Anomalous Proxy/VPN' : 'Direct'}
+                                {ip.ip_id} • Country: {ip.country} • {ip.is_proxy_vpn ? 'Anomalous Proxy/VPN Node' : 'Direct'}
                               </div>
                             </div>
                           </div>
@@ -608,7 +736,7 @@ export const GraphExplorerPage: React.FC = () => {
             ) : activeQuery === 'connected_accounts' ? (
               /* 6. Connected Accounts */
               !queryResult?.connections || queryResult.connections.length === 0 ? (
-                <div className="py-20 text-center space-y-2">
+                <div className="py-20 text-center space-y-2 p-8 rounded-2xl bg-gray-50 border border-gray-100">
                   <Network className="w-8 h-8 text-gray-400 mx-auto" />
                   <div className="text-xs font-semibold text-gray-800">No 2-Hop Connected Accounts Found</div>
                   <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
@@ -640,7 +768,7 @@ export const GraphExplorerPage: React.FC = () => {
             ) : activeQuery === 'transaction_paths' ? (
               /* 7. Transaction Paths */
               !queryResult?.paths || queryResult.paths.length === 0 ? (
-                <div className="py-20 text-center space-y-2">
+                <div className="py-20 text-center space-y-2 p-8 rounded-2xl bg-gray-50 border border-gray-100">
                   <Share2 className="w-8 h-8 text-gray-400 mx-auto" />
                   <div className="text-xs font-semibold text-gray-800">No Multi-Hop Transaction Paths Found</div>
                   <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
@@ -665,9 +793,9 @@ export const GraphExplorerPage: React.FC = () => {
             ) : activeQuery === 'merchant_relationships' ? (
               /* 8. Merchant Relationships */
               !queryResult || queryResult.transaction_count === 0 ? (
-                <div className="py-20 text-center space-y-2">
+                <div className="py-20 text-center space-y-2 p-8 rounded-2xl bg-gray-50 border border-gray-100">
                   <ShieldAlert className="w-8 h-8 text-gray-400 mx-auto" />
-                  <div className="text-xs font-semibold text-gray-800">No Merchant Transaction Data</div>
+                  <div className="text-xs font-semibold text-gray-800">No Merchant Transactions Recorded</div>
                   <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
                     No transactions paid to merchant {targetId} recorded in the graph.
                   </p>
@@ -708,7 +836,7 @@ export const GraphExplorerPage: React.FC = () => {
             ) : (
               /* 9. Neighborhood Node Grid */
               !queryResult?.nodes || queryResult.nodes.length === 0 ? (
-                <div className="py-20 text-center space-y-2">
+                <div className="py-20 text-center space-y-2 p-8 rounded-2xl bg-gray-50 border border-gray-100">
                   <Building2 className="w-8 h-8 text-gray-400 mx-auto" />
                   <div className="text-xs font-semibold text-gray-800">No Neighborhood Nodes Found</div>
                   <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
@@ -768,7 +896,7 @@ export const GraphExplorerPage: React.FC = () => {
                 <h3 className="text-sm font-semibold text-gray-900">Entity Telemetry</h3>
               </div>
               {selectedNode && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200/60">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200/60 font-medium">
                   {selectedNode._type || selectedNode.device_type || (selectedNode.is_proxy_vpn !== undefined ? 'IP' : 'Entity')}
                 </span>
               )}

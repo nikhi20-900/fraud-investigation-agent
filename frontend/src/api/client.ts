@@ -205,63 +205,57 @@ export async function fetchGraphSummary(): Promise<GraphSummaryResponse | null> 
 }
 
 export async function fetchAccountNeighborhood(accountId: string, maxHops: number = 2): Promise<any> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/graph/neighborhood/${accountId}?max_hops=${maxHops}`);
-    if (res.ok) return await res.json();
-  } catch (err) {
-    console.warn(`Error fetching neighborhood for ${accountId}`);
+  const res = await fetch(`${API_BASE_URL}/api/graph/neighborhood/${accountId}?max_hops=${maxHops}`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.detail || `Failed to fetch neighborhood for account ${accountId} (HTTP ${res.status})`);
   }
-  return null;
+  return await res.json();
 }
 
 export async function fetchSharedDevices(minAccounts: number = 2): Promise<any[]> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/graph/shared-devices?min_accounts=${minAccounts}`);
-    if (res.ok) return await res.json();
-  } catch (err) {
-    console.warn('Error fetching shared devices');
+  const res = await fetch(`${API_BASE_URL}/api/graph/shared-devices?min_accounts=${minAccounts}`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.detail || `Failed to fetch shared devices (HTTP ${res.status})`);
   }
-  return [];
+  return await res.json();
 }
 
 export async function fetchSharedIps(minAccounts: number = 2): Promise<any[]> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/graph/shared-ips?min_accounts=${minAccounts}`);
-    if (res.ok) return await res.json();
-  } catch (err) {
-    console.warn('Error fetching shared ips');
+  const res = await fetch(`${API_BASE_URL}/api/graph/shared-ips?min_accounts=${minAccounts}`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.detail || `Failed to fetch shared IPs (HTTP ${res.status})`);
   }
-  return [];
+  return await res.json();
 }
 
 export async function fetchConnectedAccounts(accountId: string): Promise<any> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/graph/connected-accounts/${accountId}`);
-    if (res.ok) return await res.json();
-  } catch (err) {
-    console.warn(`Error fetching connected accounts for ${accountId}`);
+  const res = await fetch(`${API_BASE_URL}/api/graph/connected-accounts/${accountId}`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.detail || `Failed to fetch connected accounts for account ${accountId} (HTTP ${res.status})`);
   }
-  return null;
+  return await res.json();
 }
 
 export async function fetchTransactionPaths(accountId: string, maxDepth: number = 3): Promise<any> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/graph/transaction-paths/${accountId}?max_depth=${maxDepth}`);
-    if (res.ok) return await res.json();
-  } catch (err) {
-    console.warn(`Error fetching transaction paths for ${accountId}`);
+  const res = await fetch(`${API_BASE_URL}/api/graph/transaction-paths/${accountId}?max_depth=${maxDepth}`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.detail || `Failed to fetch transaction paths for account ${accountId} (HTTP ${res.status})`);
   }
-  return null;
+  return await res.json();
 }
 
 export async function fetchMerchantRelationships(merchantId: string): Promise<any> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/graph/merchant-relationships/${merchantId}`);
-    if (res.ok) return await res.json();
-  } catch (err) {
-    console.warn(`Error fetching merchant relationships for ${merchantId}`);
+  const res = await fetch(`${API_BASE_URL}/api/graph/merchant-relationships/${merchantId}`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.detail || `Failed to fetch merchant relationships for merchant ${merchantId} (HTTP ${res.status})`);
   }
-  return null;
+  return await res.json();
 }
 
 // ==============================================================================

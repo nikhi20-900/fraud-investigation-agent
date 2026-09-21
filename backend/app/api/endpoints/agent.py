@@ -1,7 +1,7 @@
 """
 Agent Investigation API Endpoints (Phase 4)
 
-Provides REST interface for autonomous agentic fraud investigations:
+Provides REST interface for agentic forensic fraud investigations:
 - POST /api/agent/investigate
 - GET  /api/agent/investigations/{investigation_id}
 """

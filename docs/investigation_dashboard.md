@@ -105,7 +105,7 @@ Provides an instantaneous summary of account health:
    - Tab 1: Detailed list of corroborating evidence items and triggering metrics.
    - Tab 2: Operational blind spots and missing information.
 3. **Audit Trail (`AuditTimeline.tsx`)**:
-   - Step-by-step provenance of the agent's autonomous workflow (`supervisor_init`, `plan_investigation`, `execute_investigation_pass_1`, `analyze_evidence`, `generate_report`).
+   - Step-by-step provenance of the agentic investigation workflow (`supervisor_init`, `plan_investigation`, `execute_investigation_pass_1`, `analyze_evidence`, `generate_report`).
 
 ---
 

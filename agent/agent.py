@@ -85,13 +85,13 @@ class FraudInvestigationAgent:
 
     def investigate(
         self,
-        case_id: Optional[str] = None,
         account_id: Optional[str] = None,
+        case_id: Optional[str] = None,
         analyst_notes: Optional[str] = None,
         investigation_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Executes an end-to-end autonomous forensic investigation.
+        Executes an end-to-end agentic forensic investigation.
         """
         inv_id = investigation_id or f"INV-{uuid.uuid4().hex[:6].upper()}"
 

@@ -18,12 +18,13 @@ The evaluation was executed 100% offline using the synthetic fraud graph dataset
 
 | Evaluation Category | Status | Summary Finding |
 |:---|:---:|:---|
-| **Comprehensive Test Suite** | **PASS** | 91/91 tests passing with zero regressions across unit, integration, and evaluation suites. |
+| **Comprehensive Test Suite** | **PASS** | 92/92 tests passing with zero regressions across unit, integration, and evaluation suites. |
 | **Scenario Coverage** | **PASS** | 100% coverage across 7 synthetic scenarios (Normal, Device Ring, IP Cluster, Merchant Collusion, Layering, Velocity, Multi-Account). |
 | **Determinism** | **PASS** | `Run 1 == Run 2 == Run 3` verified across 4 representative accounts for risk scores, tiers, findings, entities, and actions. |
 | **Risk Engine** | **PASS** | Mathematical score boundedness [0.0, 100.0], qualitative ordering invariants preserved, and strict independence between risk and uncertainty. |
 | **Recommendation Engine** | **PASS** | Evidence-to-action alignment verified, zero duplicate action types, bounded priority scores, advisory actions only. |
 | **Agent Grounding & Traceability** | **PASS** | 133/133 entities verified; 0 fabricated IDs; 0 untraceable entities; 0 invented findings on normal accounts. |
+| **Single-Pass Orchestration** | **PASS** | Exactly ONE agent execution verified; findings and evidence reused downstream with zero hidden agent runs. |
 | **API Robustness** | **PASS** | 422 for schema validation, 404 for unknown resources; zero leakage of stack traces, filesystem paths, or secrets. |
 | **Performance Baseline** | **PASS** | Local simulator evaluation established a baseline of approximately 2.5–3.6 ms for the tested synthetic scenarios. |
 
@@ -227,7 +228,7 @@ These figures represent a local deterministic baseline for regression protection
 The findings of this evaluation must be interpreted within the explicit constraints of the project architecture:
 
 1. **Synthetic Dataset:** All entities, transactions, and behavioral patterns are generated using RFC-compliant synthetic generators. They do not represent real human financial transactions.
-2. **Graph Simulator Fallback:** Benchmarks and tests evaluate the in-memory Python graph simulator when TigerGraph enterprise instances are offline.
+2. **TigerGraph Ready vs. In-Memory Simulator:** The architecture provides production-ready TigerGraph GSQL schemas, loading jobs, and queries in `graph/`, while evaluation benchmarks evaluate against the in-memory Python graph simulator for reproducible local execution. Production deployment would alter latency depending on network infrastructure and cluster sizing.
 3. **Deterministic Rules $\ne$ Statistical Fraud Probabilities:** Fraud detector scores and risk engine scores reflect deterministic rule evaluation and heuristic weights, NOT calibrated Bayesian or machine-learned fraud probabilities.
 4. **Confidence is Evidentiary Support:** The `confidence` metric measures the structural completeness and corroboration of graph evidence supporting a rule, NOT the real-world statistical likelihood of guilt.
 5. **Risk Score is NOT a Calibrated Probability:** A risk score of $100.0$ indicates that all high-severity heuristic rules fired with maximum weight; it is not a $100\%$ probability of criminal fraud.

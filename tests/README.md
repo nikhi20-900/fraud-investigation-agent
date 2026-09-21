@@ -52,5 +52,9 @@ cd ../frontend && npm run build
   Composite risk score is a deterministic aggregation of heuristic rule weights, not a calibrated Bayesian fraud probability.
 - **Uncertainty $\ne$ Innocence (and Uncertainty $\ne$ Guilt):**
   Uncertainty quantifies informational incompleteness or missing evidence. An uncorroborated account has high uncertainty without being guilty; conversely, high uncertainty does not mean proven innocence.
+- **Single Agent Orchestration:**
+  The pipeline executes strictly ONE agent investigation pass; findings and evidence are reused downstream with zero hidden secondary runs.
+- **Analyst Advisory Guidance:**
+  All Next Best Action recommendations provide decision support for human fraud investigators, never automated account freezing or destructive enforcement.
 
 

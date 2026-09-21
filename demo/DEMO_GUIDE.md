@@ -34,9 +34,9 @@ A structured, 5–7 minute executive and technical demonstration script designed
   > *"Rather than blindly throwing an LLM at raw database tables, our architecture enforces strict separation of concerns:
   > First, a high-performance graph layer models relational linkages between customers, accounts, cards, devices, and IPs.
   > Second, six deterministic fraud detection engines evaluate heuristic graph patterns.
-  > Third, a LangGraph autonomous forensic agent evaluates hypotheses and gathers corroborating facts.
-  > Fourth, an explainable risk and uncertainty engine computes independent scores for severity versus evidence completeness.
-  > And finally, a deterministic Next Best Action engine suggests prioritized operational next steps. Crucially, the LLM never scores risk—guaranteeing 100% reproducible results."*
+  > Third, a LangGraph forensic investigation agent evaluates hypotheses and gathers corroborating facts in a single execution pass.
+  > Fourth, an explainable risk and uncertainty engine computes independent scores for severity versus evidence completeness by reusing these findings.
+  > And finally, a deterministic Next Best Action engine suggests prioritized operational next steps as analyst advisory guidance. Crucially, exactly ONE agent investigation runs, the LLM never scores risk, and recommendations never execute automatic account freezes without human investigator confirmation."*
 
 ---
 
@@ -103,8 +103,8 @@ A structured, 5–7 minute executive and technical demonstration script designed
 ### Segment 8: Verification & Conclusion (6:00 – 7:00)
 - **Screen:** Switch to terminal or show `docs/evaluation_report.md`.
 - **What to Show / Say:**
-  > *"To ensure enterprise robustness, Phase 9 established an exhaustive evaluation harness:
-  > - 91 out of 91 automated tests pass with zero regressions.
+  > *"To ensure evaluation rigor and engineering reliability, Phase 9 established an exhaustive evaluation harness:
+  > - 92 out of 92 automated tests pass with zero regressions.
   > - Determinism is mathematically proven: Run 1 equals Run 2 equals Run 3 across all scores and rankings.
   > - Zero entity hallucinations: 100% of referenced entities ground directly in the synthetic dataset.
   > - Local simulator execution establishes a baseline of approximately 2.5 to 3.6 ms for tested scenarios.

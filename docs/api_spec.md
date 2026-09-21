@@ -103,7 +103,7 @@ Base URL: `http://localhost:8000`
 
 ---
 
-## 4. Autonomous Agent Subsystem (LangGraph)
+## 4. Agentic Investigation Subsystem (LangGraph)
 
 ### 4.1 Trigger Agent Investigation
 - **Endpoint:** `POST /api/agent/investigate`

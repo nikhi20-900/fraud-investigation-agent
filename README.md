@@ -1,19 +1,20 @@
 # Agentic Fraud Investigation Agent
 
-An enterprise forensic intelligence system combining graph relationship analytics, deterministic heuristic detection, autonomous LangGraph reasoning, independent risk/uncertainty scoring, and auditable Next Best Action recommendations.
+A forensic intelligence platform combining graph relationship analytics, deterministic heuristic detection, agentic LangGraph reasoning, independent risk/uncertainty scoring, and auditable Next Best Action recommendations.
 
 ```text
-TigerGraph + Graph Analytics
-        +
-Deterministic Fraud Detection
-        +
-LangGraph Agent
-        +
-Risk & Uncertainty Engine
-        +
-Next Best Action
-        =
-Auditable Fraud Investigation Platform
+Graph Analytics (TigerGraph-Ready / Local Simulator)
+                        +
+           Deterministic Fraud Detection
+                        +
+        ONE Agent Investigation (LangGraph)
+                        +
+          ┌─────────────┴─────────────┐
+          ▼                           ▼
+     Risk Engine                 NBA Engine
+    (reuses facts)           (advisory actions)
+                        =
+        Auditable Fraud Investigation Platform
 ```
 
 ![Agentic Fraud Investigation Platform Demo](demo/screenshots/investigation-ring.png)
@@ -28,9 +29,9 @@ The Agentic Fraud Investigation Agent automates the end-to-end triaging, graph e
 When a suspicious case or account is flagged:
 1. **Traverses Relationship Topology:** Recursively expands 2-hop neighborhoods across accounts, cards, devices, IP nodes, and merchants.
 2. **Detects Heuristic Fraud Patterns:** Identifies co-located emulator rings, proxy clusters, multi-hop laundering cascades, and transaction velocity bursts.
-3. **Conducts Agentic Reasoning:** Deploys a stateful LangGraph multi-node agent that evaluates competing hypotheses, gathers corroborating graph facts, and identifies investigative blind spots.
-4. **Calculates Calibrated Risk & Uncertainty:** Evaluates risk severity independently from evidentiary completeness, placing accounts on an actionable 2x2 Decision Matrix.
-5. **Recommends Next Best Actions:** Produces prioritized, deduplicated, and explainable investigation steps (e.g., hardware telemetry requests, counterparty tracing) with estimated uncertainty reduction.
+3. **Conducts Agentic Reasoning:** Deploys a stateful LangGraph multi-node agent that evaluates competing hypotheses, gathers corroborating graph facts, and identifies investigative blind spots in a single-pass execution.
+4. **Calculates Calibrated Risk & Uncertainty:** Evaluates risk severity independently from evidentiary completeness, placing accounts on an actionable 2x2 Decision Matrix without conflating risk with fraud probabilities.
+5. **Recommends Next Best Actions:** Produces prioritized, deduplicated, and explainable investigation steps (e.g., hardware telemetry requests, counterparty tracing) with estimated uncertainty reduction as non-binding analyst advisory guidance (no automated enforcement).
 6. **Delivers Single-Pane Dashboard:** Visualizes findings, interactive topology graphs, risk gauges, and immutable audit logs within an Apple-inspired forensic workspace.
 
 ---
@@ -53,10 +54,10 @@ Legacy fraud tools either rely on static rule engines that miss relational syndi
 - **Deterministic Rule Engine:** Produces identical risk scores, tiers, findings, and action rankings across repeated executions (`Run 1 == Run 2 == Run 3`).
 - **Graph Ring & Cluster Detection:** Pinpoints shared rooted emulators, anomalous proxy ASNs, and multi-account identity clusters.
 - **Multi-Hop Layering Tracing:** Traces serial transaction chains through intermediate mule accounts into offshore liquidity services.
-- **Autonomous Forensic Agent (LangGraph):** Evaluates competing hypotheses (e.g., bot syndicate vs. legitimate multi-user device sharing) using an offline-executable node loop.
+- **Forensic Investigation Agent (LangGraph):** Evaluates competing hypotheses (e.g., bot syndicate vs. legitimate multi-user device sharing) using an offline-executable node loop.
 - **Orthogonal 2x2 Decision Matrix:** High Risk / Low Uncertainty (Immediate Action), High Risk / High Uncertainty (Urgent Investigation), Low Risk / Low Uncertainty (Clean Baseline), Low Risk / High Uncertainty (Information Gathering).
 - **Zero Entity Hallucination:** 100% of entity IDs referenced in findings, evidence, and recommendations ground strictly in empirical graph vertices.
-- **Apple-Inspired Interface:** Dark-mode glassmorphic dashboard featuring fluid typography, force-directed graph canvases, SVG risk gauges, and responsive forensic panels.
+- **Apple-Inspired Interface:** Modern design system featuring fluid typography, force-directed graph canvases, SVG risk gauges, and responsive forensic panels.
 
 ---
 
@@ -74,29 +75,27 @@ Legacy fraud tools either rely on static rule engines that miss relational syndi
                     │ Investigation API    │
                     └──────────┬───────────┘
                                │
-             ┌─────────────────┼──────────────────┐
-             ▼                 ▼                  ▼
-       Graph Layer       Fraud Engine        Case Data
-             │                 │
-             ▼                 ▼
-        TigerGraph       Pattern Detection
-             │                 │
-             └──────────┬──────┘
-                        ▼
-                Agent Investigation
-                   (LangGraph)
-                        │
-                        ▼
-             ┌──────────────────────┐
-             │ Risk + Uncertainty   │
-             └──────────┬───────────┘
-                        ▼
-             ┌──────────────────────┐
-             │ Next Best Action     │
-             └──────────┬───────────┘
-                        ▼
-             Auditable Investigation
-                   Result
+             ┌─────────────────┴──────────────────┐
+             ▼                                    ▼
+       Graph Layer (TigerGraph Ready          Fraud Engine
+       / Local Simulator Fallback)       (6 Calibrated Detectors)
+             │                                    │
+             └─────────────────┬──────────────────┘
+                               │
+                               ▼
+                    ONE Agent Investigation
+                      (LangGraph Node Loop)
+                               │
+                ┌──────────────┴──────────────┐
+                ▼                             ▼
+       Risk & Uncertainty Engine     Next Best Action Engine
+      (Reuses Findings & Evidence)  (Reuses Findings, Evidence & Risk)
+                │                    (Analyst Advisory Actions)
+                └──────────────┬──────────────┘
+                               │
+                               ▼
+                    Auditable Investigation
+                             Result
 ```
 
 *For comprehensive architectural design decisions, see [docs/architecture.md](docs/architecture.md).*
@@ -143,6 +142,7 @@ The forensic engine enforces three fundamental technical separations:
 ## Next Best Action
 
 The deterministic Next Best Action (NBA) engine translates forensic findings into prioritized operational steps:
+- **Analyst Advisory Guidance:** All recommended actions serve strictly as decision-support guidance for human fraud analysts. The engine never triggers automated account freezing, transaction cancellations, or asset forfeiture.
 - **Deduplication:** Guarantees zero duplicate action types in any generated plan.
 - **Scoring Formula:** Prioritizes actions based on uncertainty-reduction potential ($0–30$), risk relevance ($0–30$), and pattern severity.
 - **Proportionality:** Clean baseline accounts receive **zero** intrusive actions (no freezes, no invasive KYC re-verification demands).
@@ -165,7 +165,7 @@ The frontend application provides a modern, high-contrast investigation workspac
 - **Framework:** React 18 (SPA)
 - **Language:** TypeScript
 - **Tooling:** Vite
-- **Styling:** Tailwind CSS (Apple-inspired dark mode glassmorphism)
+- **Styling:** Tailwind CSS (Apple-inspired modern design system)
 - **Icons:** Lucide React
 
 ### Backend & Core
@@ -174,8 +174,8 @@ The frontend application provides a modern, high-contrast investigation workspac
 - **Server:** Uvicorn (ASGI)
 
 ### Graph Intelligence
-- **Graph Database:** TigerGraph (GSQL queries)
-- **Offline Fallback:** In-memory Python Graph Simulator
+- **Production Ready:** TigerGraph (GSQL schemas, loading jobs, and analytical queries in `graph/`)
+- **Local Development & CI:** In-memory Python Graph Simulator operating over deterministic synthetic graph fixture
 
 ### Agentic Reasoning
 - **Agent Framework:** LangGraph (Stateful multi-node cyclic graph)
@@ -295,7 +295,7 @@ Agent Grounding: PASS (133/133 entities verified, 0 hallucinations)
 API Robustness: PASS (422 validation, 404 unknown, 0 data leakage)
 Performance Baseline: PASS (2.5–3.6 ms local simulator baseline)
 
-Overall: PASS (91/91 automated tests passing)
+Overall: PASS (92/92 automated tests passing)
 ======================================================================
 ```
 
@@ -312,7 +312,7 @@ Overall: PASS (91/91 automated tests passing)
 | `GET` | `/api/cases/{case_id}` | Case profile with transactions and assigned investigator |
 | `GET` | `/api/graph/neighborhood/{id}` | Sub-graph 2-hop neighborhood expansion |
 | `GET` | `/api/fraud/patterns/{account_id}` | 6 calibrated fraud pattern detector evaluations |
-| `POST` | `/api/agent/investigate` | Autonomous LangGraph forensic investigation agent |
+| `POST` | `/api/agent/investigate` | Stateful LangGraph forensic investigation agent |
 | `GET` | `/api/risk/{account_id}` | Deterministic risk & uncertainty score, quadrant matrix |
 | `GET` | `/api/recommendations/{account_id}` | Prioritized, explainable Next Best Actions |
 | `POST` | `/api/investigations/run` | **Unified End-to-End Investigation Orchestrator** |
@@ -389,11 +389,11 @@ docker compose up --build
 
 ## Limitations
 
-- **Local Simulator Baseline $\ne$ Production Latency:** Local simulator evaluation established a baseline of approximately **2.5–3.6 ms** for the tested synthetic scenarios. Production deployments incorporating a live distributed TigerGraph cluster, network serialization, database connection pooling, and remote LLM reasoning would change latency substantially.
-- **Synthetic Data:** The dataset is synthetic and does not capture the full chaotic entropy of real-world banking transaction feeds.
-- **Simulator Fallback:** Tests evaluate the in-memory Python simulator in the absence of a live TigerGraph cluster.
+- **Local Simulator Baseline $\ne$ Production Latency:** Local simulator evaluation established an internal baseline of approximately **2.5–3.6 ms** for the tested synthetic scenarios. Production deployments incorporating a live distributed TigerGraph cluster, network serialization, database connection pooling, and remote LLM reasoning would change latency substantially.
+- **Synthetic Data:** The dataset is synthetic (RFC 5737 / RFC 2606 compliant) and does not capture the full chaotic entropy of real-world banking transaction feeds.
+- **TigerGraph Ready vs. Simulator Baseline:** The repository provides production-ready TigerGraph GSQL schemas, loading jobs, and queries in `graph/`, while offline tests and benchmarks execute against the in-memory Python graph simulator for reproducible zero-dependency evaluation.
 - **Rule Severity $\ne$ Statistical Fraud Probabilities:** Heuristic risk scores reflect deterministic rule evaluation, not calibrated Bayesian probabilities of criminal fraud.
-- **Confidence is Evidentiary Support:** Measures completeness of corroborating graph facts, not statistical likelihood of guilt.
+- **Confidence is Evidentiary Support:** Evidentiary confidence measures completeness of corroborating graph facts, not statistical likelihood of guilt.
 - **Advisory Recommendations:** Action plans provide decision-support guidance for human analysts and do not automatically execute adverse actions without human oversight.
 
 ---
@@ -403,7 +403,7 @@ docker compose up --build
 - **Phase 1 — Foundation Architecture & Scaffolding** ✅
 - **Phase 2 — TigerGraph Queries & Schema Modeling** ✅
 - **Phase 3 — Deterministic Fraud Pattern Detection** ✅
-- **Phase 4 — Autonomous Agentic Investigation (LangGraph)** ✅
+- **Phase 4 — Agentic Forensic Investigation (LangGraph)** ✅
 - **Phase 5 — Deterministic Risk & Uncertainty Engine** ✅
 - **Phase 6 — Next Best Action (NBA) Recommendation Engine** ✅
 - **Phase 7 — Apple-Inspired Investigation Dashboard UI** ✅

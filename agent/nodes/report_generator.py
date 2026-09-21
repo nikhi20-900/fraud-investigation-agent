@@ -85,6 +85,8 @@ def report_generator_node(state: InvestigationState) -> Dict[str, Any]:
         "summary": summary,
         "findings": phase3_findings,
         "evidence": supporting_evidence + conflicting_evidence,
+        "supporting_evidence": supporting_evidence,
+        "conflicting_evidence": conflicting_evidence,
         "hypotheses": hypotheses,
         "uncertainties": uncertainties,
         "next_actions": next_actions,

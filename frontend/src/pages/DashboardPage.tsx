@@ -47,8 +47,8 @@ export const DashboardPage: React.FC = () => {
             Fraud Operations & Intelligence Cockpit
           </h2>
           <p className="text-xs text-gray-500 mt-1 max-w-2xl">
-            Autonomous agent foundation for real-time transaction screening, entity graph
-            link analysis, and decision explainability.
+            Agentic forensic intelligence platform for transaction screening, entity graph
+            link analysis, and explainable investigator decision support.
           </p>
         </div>
         <div className="flex items-center gap-3">

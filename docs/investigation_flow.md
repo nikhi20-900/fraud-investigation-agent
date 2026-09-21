@@ -20,31 +20,26 @@ This document traces the complete lifecycle of a fraud investigation through the
                └───────────────┬───────────────┘
                                ▼
                ┌───────────────────────────────┐
-               │     Shared Device Detected    │ (DEV-ROOT-EMU-77)
+               │    Fraud Patterns Detected    │ (6 Calibrated Detectors)
                └───────────────┬───────────────┘
                                ▼
                ┌───────────────────────────────┐
-               │    Fraud Patterns Detected    │ (5 Empirical Patterns)
+               │   ONE Agent Investigation     │ (LangGraph Single-Pass)
                └───────────────┬───────────────┘
+                               │
+                ┌──────────────┴──────────────┐
+                ▼                             ▼
+       ┌─────────────────┐           ┌─────────────────┐
+       │   Risk Engine   │           │   NBA Engine    │
+       │ (Reuses Facts & │           │ (Reuses Facts,  │
+       │    Evidence)    │           │ Evidence & Risk)│
+       │ (Score: 100.0)  │           │ (Advisory Plan) │
+       └────────┬────────┘           └────────┬────────┘
+                │                             │
+                └──────────────┬──────────────┘
                                ▼
                ┌───────────────────────────────┐
-               │  Agent Evaluates Evidence     │ (LangGraph Node Loop)
-               └───────────────┬───────────────┘
-                               ▼
-               ┌───────────────────────────────┐
-               │    Risk Score Calculated      │ (Deterministic: 100.0)
-               └───────────────┬───────────────┘
-                               ▼
-               ┌───────────────────────────────┐
-               │     Uncertainty Assessed      │ (Independent: 30.0)
-               └───────────────┬───────────────┘
-                               ▼
-               ┌───────────────────────────────┐
-               │     Next Actions Generated    │ (Prioritized & Deduplicated)
-               └───────────────┬───────────────┘
-                               ▼
-               ┌───────────────────────────────┐
-               │  Final Investigation Returned │ (Auditable Unified Schema)
+               │  Final Unified Investigation  │ (Auditable Result)
                └───────────────────────────────┘
 ```
 
@@ -109,8 +104,8 @@ The 6 calibrated heuristic detectors analyze graph linkages and transaction inte
 5. **`SHARED_IP_CLUSTER` (MEDIUM / Confidence: 0.80)**
    - *Detail:* Relational proximity to shared proxy ASN infrastructure.
 
-### Step 6: Agentic Evidence Synthesis (LangGraph)
-The autonomous investigation agent executes its multi-step reasoning loop:
+### Step 6: Agentic Evidence Synthesis (LangGraph — ONE Agent Run)
+The forensic investigation agent executes its single-pass reasoning loop (the orchestrator executes strictly ONE agent run, reusing findings and evidence downstream):
 - **Corroborating Evidence:** Hardware fingerprint co-location, rapid succession withdrawal intervals, OTC merchant MCC 6051.
 - **Conflicting / Mitigating Evidence:** None observed. Account has no history of regular payroll deposits or everyday retail purchases.
 - **Hypotheses Formulated:**
@@ -118,7 +113,7 @@ The autonomous investigation agent executes its multi-step reasoning loop:
   * `HYP-02` (Legitimate Multi-User Shared Device): **REFUTED** (Confidence: 0.05, rooted headless environment contradicts casual family device sharing)
 
 ### Step 7: Deterministic Risk Score Calculation
-The Risk Engine synthesizes the findings into mathematically bounded scores:
+The Risk Engine reuses the Phase 3 findings and Phase 4 agent evidence to synthesize mathematically bounded scores (with zero secondary agent runs):
 - **Positive Risk Drivers:**
   * Rooted Emulator Ring: `+40.0`
   * Rapid Velocity Burst: `+30.0`
@@ -133,10 +128,10 @@ The engine computes informational completeness independently of guilt:
 - **Graph Coverage Ratio:** `1.0` (Full customer, device, IP, and transaction telemetry available).
 - **Uncertainty Score:** `30.0` (Low/Medium ambiguity).
 - **Decision Matrix Placement:** **`HIGH_RISK_LOW_UNCERTAINTY`**
-- **Operational Directive:** Immediate defensive containment warranted without awaiting further telemetry.
+- **Operational Directive:** Immediate defensive containment review warranted without awaiting further telemetry.
 
-### Step 9: Next Best Action (NBA) Generation
-The recommendation engine prioritizes forensic actions by uncertainty reduction potential and risk alignment, removing duplicate action types:
+### Step 9: Next Best Action (NBA) Generation (Analyst Advisory)
+The recommendation engine reuses the upstream evidence and risk assessment directly, generating prioritized forensic actions as decision-support guidance for human analysts (no automated enforcement or account freezing):
 
 1. **`REQUEST_DEVICE_TELEMETRY` (CRITICAL / Priority: 88.0)**
    - Target: `DEV-ROOT-EMU-77`
@@ -152,7 +147,7 @@ The recommendation engine prioritizes forensic actions by uncertainty reduction 
    - Rationale: Expand investigation to isolate all co-located accounts in the syndicate.
 5. **`INVESTIGATE_SHARED_DEVICE` (HIGH / Priority: 65.0)**
    - Target: `DEV-ROOT-EMU-77`
-   - Rationale: Cross-reference emulator fingerprint across enterprise fraud databases.
+   - Rationale: Cross-reference emulator fingerprint across known fraud databases.
 
 ### Step 10: Final Unified Investigation Result
 The complete payload is returned to the analyst dashboard in a single JSON response accompanied by an immutable audit trail:

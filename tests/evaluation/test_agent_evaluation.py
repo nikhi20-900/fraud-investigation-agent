@@ -159,6 +159,30 @@ class TestAgentAndTraceabilityEvaluation(unittest.TestCase):
                 f"Action {action.action_id} has no traceable evidence or target entities"
             )
 
+    def test_single_agent_execution_orchestration(self):
+        """
+        Phase 8 Orchestration Invariant:
+        Graph/Fraud -> ONE Agent Investigation -> Risk Engine / NBA Engine.
+        The agent must be invoked exactly ONCE in run_investigation, and findings/evidence
+        must be reused downstream without any hidden secondary/tertiary agent executions.
+        """
+        from unittest.mock import patch
+
+        with patch.object(self.agent, "investigate", wraps=self.agent.investigate) as spy_investigate:
+            res = self.service.run_investigation(
+                case_id="CASE-1001",
+                target_account_id="ACC-RING-001",
+                investigation_id="INV-TEST-SINGLE-RUN",
+            )
+            self.assertEqual(
+                spy_investigate.call_count,
+                1,
+                f"Agent investigate should be called exactly ONCE, but was called {spy_investigate.call_count} times."
+            )
+            self.assertEqual(res.status.value, "COMPLETED")
+            self.assertIsNotNone(res.risk_assessment)
+            self.assertIsNotNone(res.action_plan)
+
 
 def evaluate_agent_and_traceability() -> Dict[str, Any]:
     """

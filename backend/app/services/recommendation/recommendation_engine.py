@@ -58,17 +58,27 @@ class RecommendationEngine:
         include_phase4: bool = True,
         max_actions: Optional[int] = None,
         min_priority: Optional[ActionPriority] = None,
+        override_findings: Optional[List[Any]] = None,
+        override_evidence: Optional[List[Dict[str, Any]]] = None,
+        override_risk_assessment: Optional[Any] = None,
     ) -> ActionPlan:
         """
         Executes end-to-end recommendation workflow for an account.
+        Reuses upstream Phase 3 findings, Phase 4 evidence, and Phase 5 risk assessment
+        when provided, ensuring exactly ONE agent execution in unified pipelines.
         """
         # 1. Retrieve Phase 3 Findings
-        analysis = pattern_detector.analyze_account(account_id)
-        phase3_findings = analysis.findings
+        if override_findings is not None:
+            phase3_findings = override_findings
+        else:
+            analysis = pattern_detector.analyze_account(account_id)
+            phase3_findings = analysis.findings
 
         # 2. Retrieve Phase 4 Investigation Evidence & Hypotheses
         phase4_evidence: List[Dict[str, Any]] = []
-        if include_phase4:
+        if override_evidence is not None:
+            phase4_evidence = override_evidence
+        elif include_phase4:
             try:
                 agent = get_agent()
                 phase4_report = agent.investigate(account_id=account_id, case_id=case_id)
@@ -77,11 +87,16 @@ class RecommendationEngine:
                 phase4_evidence = []
 
         # 3. Retrieve Phase 5 Risk & Uncertainty Assessment
-        risk_assessment = risk_engine.assess_account(
-            account_id=account_id,
-            case_id=case_id,
-            include_phase4=include_phase4,
-        )
+        if override_risk_assessment is not None:
+            risk_assessment = override_risk_assessment
+        else:
+            risk_assessment = risk_engine.assess_account(
+                account_id=account_id,
+                case_id=case_id,
+                include_phase4=include_phase4,
+                override_findings=phase3_findings,
+                override_evidence=phase4_evidence,
+            )
 
         quadrant_str = risk_assessment.uncertainty.quadrant.value
 

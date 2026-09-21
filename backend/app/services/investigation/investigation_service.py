@@ -182,7 +182,7 @@ class InvestigationService:
             )
 
             # ------------------------------------------------------------------
-            # Step 3: Agentic Forensic Investigation (Phase 4)
+            # Step 3: Agentic Forensic Investigation (Phase 4) — Exactly ONE Agent Run
             # ------------------------------------------------------------------
             agent = self._resolve_agent()
             agent_report = agent.investigate(
@@ -191,8 +191,13 @@ class InvestigationService:
                 analyst_notes=analyst_notes,
                 investigation_id=inv_id,
             )
-            supporting_evidence = agent_report.get("supporting_evidence", [])
-            conflicting_evidence = agent_report.get("conflicting_evidence", [])
+            agent_evidence = agent_report.get("evidence", [])
+            supporting_evidence = agent_report.get("supporting_evidence", []) or [
+                e for e in agent_evidence if e.get("polarity") != "CONFLICTING"
+            ]
+            conflicting_evidence = agent_report.get("conflicting_evidence", []) or [
+                e for e in agent_evidence if e.get("polarity") == "CONFLICTING"
+            ]
             hypotheses = agent_report.get("hypotheses", [])
             uncertainties = agent_report.get("uncertainties", [])
 
@@ -211,13 +216,15 @@ class InvestigationService:
 
             # ------------------------------------------------------------------
             # Step 4: Deterministic Risk & Uncertainty Engine (Phase 5)
+            # Reuses Phase 3 findings and Phase 4 agent evidence directly.
+            # No secondary agent execution.
             # ------------------------------------------------------------------
             risk_assessment = self.risk_engine.assess_account(
                 account_id=target_account_id,
                 case_id=case_id,
                 include_phase4=True,
                 override_findings=fraud_findings,
-                override_evidence=agent_report.get("evidence", []),
+                override_evidence=agent_evidence,
             )
             audit_trail.append(
                 InvestigationAuditEvent(
@@ -233,11 +240,16 @@ class InvestigationService:
 
             # ------------------------------------------------------------------
             # Step 5: Next Best Action Engine (Phase 6)
+            # Reuses Phase 3 findings, Phase 4 agent evidence, and Phase 5 risk assessment.
+            # No secondary or tertiary agent execution.
             # ------------------------------------------------------------------
             action_plan = self.rec_engine.recommend(
                 account_id=target_account_id,
                 case_id=case_id,
                 include_phase4=True,
+                override_findings=fraud_findings,
+                override_evidence=agent_evidence,
+                override_risk_assessment=risk_assessment,
             )
             audit_trail.append(
                 InvestigationAuditEvent(
