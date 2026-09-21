@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShieldCheck, ShieldAlert, Filter, Smartphone, Globe } from 'lucide-react';
 import { FindingCard } from './FindingCard';
 import type { FraudFinding } from '../../types';
 
@@ -19,81 +17,53 @@ export const FindingList: React.FC<FindingListProps> = ({ findings, onSelectEnti
     : findings.filter((f) => f.severity.toUpperCase() === selectedSeverity);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-6 space-y-4">
-      {/* Header & Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-            <ShieldAlert className="w-4 h-4" />
-          </div>
-          <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
-            Fraud Patterns & Anomalies
-          </h3>
-          <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+          <h2 className="text-[18px] font-semibold text-gray-900 tracking-tight">
+            Findings
+          </h2>
+          <span className="text-[12px] font-mono text-gray-400">
             {findings.length}
           </span>
         </div>
 
         {findings.length > 0 && (
-          <div className="flex items-center gap-1.5 self-start sm:self-auto">
-            <Filter className="w-3.5 h-3.5 text-gray-400" />
-            <div className="bg-gray-100 rounded-lg p-0.5 flex gap-0.5">
-              {severities.map((sev) => (
-                <button
-                  key={sev}
-                  onClick={() => setSelectedSeverity(sev)}
-                  className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all ${
-                    selectedSeverity === sev
-                      ? 'bg-white text-gray-900 font-semibold shadow-xs'
-                      : 'text-gray-500 hover:text-gray-800'
-                  }`}
-                >
-                  {sev}
-                </button>
-              ))}
-            </div>
+          <div className="bg-gray-100 rounded-lg p-0.5 flex gap-0.5">
+            {severities.map((sev) => (
+              <button
+                key={sev}
+                onClick={() => setSelectedSeverity(sev)}
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all ${
+                  selectedSeverity === sev
+                    ? 'bg-white text-gray-900 font-semibold shadow-xs'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                {sev}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Graph Pivots Bar */}
-      {findings.length > 0 && (
-        <div className="flex items-center gap-2 pt-1 border-t border-gray-100 flex-wrap">
-          <span className="text-[11px] text-gray-400 font-medium">Graph Pivots:</span>
-          <Link
-            to="/graph?query=shared-devices"
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-1 rounded-md transition-colors"
-          >
-            <Smartphone className="w-3 h-3 text-teal-600" />
-            <span>Shared Device</span>
-          </Link>
-          <Link
-            to="/graph?query=shared-ips"
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2.5 py-1 rounded-md transition-colors"
-          >
-            <Globe className="w-3 h-3 text-orange-600" />
-            <span>Shared IP</span>
-          </Link>
-        </div>
-      )}
-
-      {/* Findings Content */}
+      {/* Content */}
       {filtered.length === 0 ? (
-        <div className="p-8 rounded-xl bg-gray-50 border border-gray-100 text-center">
-          <ShieldCheck className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-          <div className="text-sm font-semibold text-gray-800">
+        <div className="p-8 rounded-xl bg-white border border-gray-200/60 text-center">
+          <div className="text-[14px] font-medium text-gray-700">
             {findings.length === 0
-              ? 'No Fraud Patterns Detected'
-              : `No findings matching severity "${selectedSeverity}"`}
+              ? 'No findings detected'
+              : `No findings matching "${selectedSeverity}"`}
           </div>
-          <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+          <p className="text-[13px] text-gray-400 mt-1">
             {findings.length === 0
-              ? 'Deterministic graph traversal did not find high-risk velocity, proxy hopping, or layering patterns.'
-              : 'Try clearing the severity filter to view all detected patterns.'}
+              ? 'Graph traversal did not identify high-risk patterns for this account.'
+              : 'Clear the filter to view all findings.'}
           </p>
         </div>
       ) : (
-        <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 stagger-children">
           {filtered.map((finding, idx) => (
             <FindingCard
               key={`${finding.pattern}-${idx}`}

@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
-  ShieldAlert,
   Play,
   Network,
   RefreshCw,
   AlertTriangle,
-  Sparkles,
-  Smartphone,
-  Globe,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   fetchCases,
@@ -87,8 +85,12 @@ export const InvestigationPage: React.FC = () => {
   // Loading and Execution States
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isInvestigating, setIsInvestigating] = useState<boolean>(false);
-  const [investigationStatus, setInvestigationStatus] = useState<string>('IDLE');
+  const [, setInvestigationStatus] = useState<string>('IDLE');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Section collapse states
+  const [graphExpanded, setGraphExpanded] = useState(true);
+  const [timelineExpanded, setTimelineExpanded] = useState(false);
 
   // Preset Accounts for Rapid Verification
   const PRESET_ACCOUNTS = [
@@ -113,7 +115,6 @@ export const InvestigationPage: React.FC = () => {
     fetchCaseById(caseIdParam).then((c) => {
       if (c) {
         setCurrentCase(c);
-        // If no target account was explicitly selected in URL, pick from case
         if (!targetAccountParam) {
           const defaultAcc = CASE_DEFAULT_ACCOUNTS[c.id.toUpperCase()];
           if (defaultAcc) {
@@ -142,7 +143,6 @@ export const InvestigationPage: React.FC = () => {
     setGraphEdges(result.graph_evidence?.edges || []);
     setFindings(result.fraud_findings || []);
 
-    // Combine evidence items from supporting and conflicting lists
     const evs: EvidenceItem[] = [];
     if (result.supporting_evidence && result.supporting_evidence.length > 0) {
       evs.push(...(result.supporting_evidence as EvidenceItem[]));
@@ -150,7 +150,6 @@ export const InvestigationPage: React.FC = () => {
     if (result.conflicting_evidence && result.conflicting_evidence.length > 0) {
       evs.push(...(result.conflicting_evidence as EvidenceItem[]));
     }
-    // Fallback extraction from pattern findings if agent evidence array is empty
     if (evs.length === 0 && result.fraud_findings) {
       result.fraud_findings.forEach((f) => {
         if (f.evidence) {
@@ -247,125 +246,121 @@ export const InvestigationPage: React.FC = () => {
   // Node Selection from Graph or from Tags
   const handleSelectEntity = (entityId: string) => {
     setSelectedGraphNodeId(entityId);
-    // If user clicked another account, allow switching focus
     if (entityId.startsWith('ACC-') && entityId !== selectedAccountId) {
       handleSelectAccount(entityId);
     }
   };
 
+  // Derived values
+  const riskScore = riskAssessment?.risk_score ?? 0;
+  const riskTier = riskAssessment?.risk_tier || 'UNASSESSED';
+  const uncertaintyScore = riskAssessment?.uncertainty.uncertainty_score ?? 0;
+  const actionsCount = actionPlan?.recommended_actions.length ?? 0;
+  const highCriticalFindings = findings.filter((f) => f.severity === 'CRITICAL' || f.severity === 'HIGH').length;
+
+  const getRiskColor = (score: number) => {
+    if (score >= 70) return 'text-red-600';
+    if (score >= 40) return 'text-amber-600';
+    return 'text-green-600';
+  };
+
+  const getTierBadge = (tier: string) => {
+    switch (tier) {
+      case 'CRITICAL': return 'bg-red-50 text-red-600 border-red-200';
+      case 'HIGH': return 'bg-orange-50 text-orange-600 border-orange-200';
+      case 'MEDIUM': return 'bg-amber-50 text-amber-700 border-amber-200';
+      default: return 'bg-green-50 text-green-700 border-green-200';
+    }
+  };
+
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-[1600px] mx-auto text-gray-900">
-      {/* 1. Header & Controls Bar */}
-      <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-xs space-y-4">
+    <div className="p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto text-gray-900">
+
+      {/* ============================================================
+          1. INVESTIGATION HEADER
+          Dense, unified bar: Case + Account + Risk tier + Actions
+          ============================================================ */}
+      <div className="animate-fade-in">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* Target Selection */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  Case:
-                </span>
-                <select
-                  value={caseIdParam}
-                  onChange={(e) => handleSelectCase(e.target.value)}
-                  className="bg-gray-100 border border-transparent rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
-                >
-                  {allCases.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.id} — {c.title}
-                    </option>
-                  ))}
-                </select>
-
-                <span className="text-gray-300">|</span>
-
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  Target Account:
-                </span>
-                <select
-                  value={selectedAccountId}
-                  onChange={(e) => handleSelectAccount(e.target.value)}
-                  className="bg-gray-100 border border-transparent rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
-                >
-                  {PRESET_ACCOUNTS.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.label}
-                    </option>
-                  ))}
-                  {/* Option for custom account if not in presets */}
-                  {!PRESET_ACCOUNTS.some((a) => a.id === selectedAccountId) && (
-                    <option value={selectedAccountId}>
-                      {selectedAccountId} (Custom)
-                    </option>
-                  )}
-                </select>
-              </div>
-
-              <h1 className="text-lg md:text-xl font-semibold text-gray-900 tracking-tight mt-1.5 flex items-center gap-2 flex-wrap">
-                <span>Investigation Workspace:</span>
-                <span className="font-mono text-blue-600 font-bold">{selectedAccountId}</span>
-                {currentCase && (
-                  <span className="text-xs font-normal text-gray-400 font-mono hidden sm:inline">
-                    • {currentCase.title}
-                  </span>
-                )}
+          {/* Left: Identity */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">
+                Investigation
               </h1>
+              <select
+                value={caseIdParam}
+                onChange={(e) => handleSelectCase(e.target.value)}
+                className="bg-gray-100 rounded-lg px-2.5 py-1 text-[13px] font-mono font-semibold text-gray-700 border-none focus:outline-none focus:ring-2 focus:ring-blue-200 focus:bg-white transition-all cursor-pointer"
+              >
+                {allCases.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.id}
+                  </option>
+                ))}
+              </select>
+              <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${getTierBadge(riskTier)}`}>
+                ● {riskTier}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[13px] text-gray-500">
+              <span>Account:</span>
+              <select
+                value={selectedAccountId}
+                onChange={(e) => handleSelectAccount(e.target.value)}
+                className="bg-transparent font-mono font-semibold text-gray-800 border-none focus:outline-none focus:ring-0 cursor-pointer text-[13px] -ml-1"
+              >
+                {PRESET_ACCOUNTS.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.id}
+                  </option>
+                ))}
+                {!PRESET_ACCOUNTS.some((a) => a.id === selectedAccountId) && (
+                  <option value={selectedAccountId}>
+                    {selectedAccountId}
+                  </option>
+                )}
+              </select>
+              {currentCase && (
+                <span className="text-gray-400 hidden sm:inline">
+                  · {currentCase.title}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <Link
-              to={`/graph?query=shared-devices&target=${selectedAccountId}`}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-teal-50 text-teal-700 text-xs font-medium border border-teal-200/80 shadow-xs transition-all flex items-center gap-1.5"
-              title="Inspect Shared Device Ring in Graph Explorer"
-            >
-              <Smartphone className="w-4 h-4 text-teal-600" />
-              <span>Shared Device</span>
-            </Link>
-
-            <Link
-              to={`/graph?query=shared-ips&target=${selectedAccountId}`}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200/80 shadow-xs transition-all flex items-center gap-1.5"
-              title="Inspect Shared IP Cluster in Graph Explorer"
-            >
-              <Globe className="w-4 h-4 text-orange-600" />
-              <span>Shared IP</span>
-            </Link>
-
+          {/* Right: Action Buttons */}
+          <div className="flex items-center gap-2">
             <Link
               to={`/graph?target=${selectedAccountId}`}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 text-xs font-medium border border-gray-200/80 shadow-xs transition-all flex items-center gap-2"
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-gray-600 text-[13px] font-medium border border-gray-200 transition-all flex items-center gap-1.5 card-hover"
             >
-              <Network className="w-4 h-4 text-purple-600" />
-              <span>Full Graph Explorer</span>
+              <Network className="w-3.5 h-3.5 text-gray-500" />
+              <span>Graph Explorer</span>
             </Link>
 
             <button
               onClick={() => loadInvestigation(selectedAccountId, caseIdParam)}
               disabled={isLoading || isInvestigating}
-              className="p-2 rounded-xl bg-white hover:bg-gray-50 text-gray-600 border border-gray-200/80 shadow-xs transition-colors disabled:opacity-50"
-              title="Refresh Telemetry"
+              className="p-2 rounded-lg bg-white hover:bg-gray-50 text-gray-500 border border-gray-200 transition-colors disabled:opacity-40"
+              title="Refresh"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
 
             <button
               onClick={handleRunInvestigation}
               disabled={isInvestigating || isLoading}
-              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-2 disabled:cursor-not-allowed"
+              className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-[13px] font-semibold transition-all flex items-center gap-1.5 disabled:cursor-not-allowed"
             >
               {isInvestigating ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Running Investigation...</span>
+                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Running...</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-3.5 h-3.5 fill-current text-white" />
+                  <Play className="w-3 h-3 fill-current" />
                   <span>Run Investigation</span>
                 </>
               )}
@@ -375,220 +370,204 @@ export const InvestigationPage: React.FC = () => {
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200/60 flex items-center gap-2 text-xs text-red-700">
+          <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-200/60 flex items-center gap-2 text-[13px] text-red-700 animate-slide-up">
             <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
       </div>
 
-      {/* 2. Top Summary KPI Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {/* Risk Score — Visually Dominant Lead Metric */}
-        <div className={`p-4 rounded-2xl bg-white border-2 ${
-          (riskAssessment?.risk_score ?? 0) >= 70
-            ? 'border-red-300'
-            : (riskAssessment?.risk_score ?? 0) >= 40
-            ? 'border-amber-300'
-            : 'border-blue-200'
-        } shadow-xs`}>
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-semibold text-gray-700">Risk Score</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${
-              riskAssessment?.risk_tier === 'CRITICAL'
-                ? 'bg-red-50 text-red-600 border border-red-200'
-                : riskAssessment?.risk_tier === 'HIGH'
-                ? 'bg-orange-50 text-orange-600 border border-orange-200'
-                : 'bg-gray-100 text-gray-700'
-            }`}>
-              {riskAssessment?.risk_tier || 'UNASSESSED'}
+      {/* ============================================================
+          2. STAT STRIP — Compact inline KPI bar
+          Risk | Uncertainty | Findings | Actions
+          ============================================================ */}
+      <div className="flex items-stretch gap-0 bg-white rounded-xl border border-gray-200/60 overflow-hidden animate-slide-up">
+        {/* Risk */}
+        <div className="flex-1 px-5 py-3.5 border-r border-gray-100">
+          <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Risk</div>
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <span className={`text-[24px] font-bold font-mono tracking-tight ${getRiskColor(riskScore)}`}>
+              {riskAssessment ? riskScore.toFixed(0) : '—'}
             </span>
+            <span className="text-[11px] text-gray-400 font-mono">/100</span>
           </div>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span
-              className={`text-[30px] font-bold tracking-tight font-mono ${
-                (riskAssessment?.risk_score ?? 0) >= 70
-                  ? 'text-red-600'
-                  : (riskAssessment?.risk_score ?? 0) >= 40
-                  ? 'text-amber-600'
-                  : 'text-green-600'
-              }`}
-            >
-              {riskAssessment ? riskAssessment.risk_score.toFixed(1) : '—'}
+        </div>
+
+        {/* Uncertainty */}
+        <div className="flex-1 px-5 py-3.5 border-r border-gray-100">
+          <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Uncertainty</div>
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <span className={`text-[24px] font-bold font-mono tracking-tight ${uncertaintyScore >= 60 ? 'text-amber-600' : 'text-blue-600'}`}>
+              {riskAssessment ? uncertaintyScore.toFixed(0) : '—'}
             </span>
-            <span className="text-[11px] font-mono text-gray-500">/ 100</span>
-          </div>
-          <div className="mt-1 text-[11px] text-gray-500">
-            Primary Calibrated Exposure
+            <span className="text-[11px] text-gray-400 font-mono">/100</span>
           </div>
         </div>
 
-        {/* Uncertainty Score */}
-        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs">
-          <div className="text-[12px] font-medium text-gray-600">
-            Uncertainty Score
-          </div>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span
-              className={`text-[26px] font-semibold tracking-tight font-mono ${
-                (riskAssessment?.uncertainty.uncertainty_score ?? 0) >= 60
-                  ? 'text-amber-600'
-                  : 'text-blue-600'
-              }`}
-            >
-              {riskAssessment ? riskAssessment.uncertainty.uncertainty_score.toFixed(1) : '—'}
+        {/* Findings */}
+        <div className="flex-1 px-5 py-3.5 border-r border-gray-100">
+          <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Findings</div>
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <span className="text-[24px] font-bold font-mono tracking-tight text-gray-900">
+              {findings.length}
             </span>
-            <span className="text-[11px] font-mono text-gray-500">/ 100</span>
-          </div>
-          <div className="mt-1 text-[11px] font-mono text-gray-500">
-            Tier: <strong className="text-gray-800">{riskAssessment?.uncertainty.uncertainty_tier || '—'}</strong>
-          </div>
-        </div>
-
-        {/* Decision Quadrant */}
-        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs">
-          <div className="text-[12px] font-medium text-gray-600">
-            Decision Quadrant
-          </div>
-          <div className="text-sm font-semibold text-gray-900 mt-2 truncate">
-            {riskAssessment?.uncertainty.quadrant.replace(/_/g, ' ') || 'CALCULATING...'}
-          </div>
-          <div className="mt-1 text-[11px] text-gray-500">
-            Evidence: {Math.round((riskAssessment?.evidence_coverage || 0) * 100)}%
+            {highCriticalFindings > 0 && (
+              <span className="text-[11px] text-red-500 font-medium">{highCriticalFindings} critical</span>
+            )}
           </div>
         </div>
 
-        {/* Findings Count */}
-        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs">
-          <div className="text-[12px] font-medium text-gray-600">
-            Fraud Patterns
-          </div>
-          <div className="text-[26px] font-semibold tracking-tight font-mono text-gray-900 mt-1">
-            {findings.length}
-          </div>
-          <div className="mt-1 text-[11px] text-gray-500">
-            {findings.filter((f) => f.severity === 'CRITICAL' || f.severity === 'HIGH').length} High/Critical
-          </div>
-        </div>
-
-        {/* Next Best Actions */}
-        <div className="p-4 rounded-2xl bg-white border border-gray-200/60 shadow-xs col-span-2 sm:col-span-1">
-          <div className="text-[12px] font-medium text-gray-600 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-            Next Best Actions
-          </div>
-          <div className="text-[26px] font-semibold tracking-tight font-mono text-blue-600 mt-1">
-            {actionPlan?.recommended_actions.length ?? 0}
-          </div>
-          <div className="mt-1 text-[11px] text-gray-500">
-            Advisory Recommendations
+        {/* Actions */}
+        <div className="flex-1 px-5 py-3.5">
+          <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Actions</div>
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <span className="text-[24px] font-bold font-mono tracking-tight text-blue-600">
+              {actionsCount}
+            </span>
+            <span className="text-[11px] text-gray-400">recommended</span>
           </div>
         </div>
       </div>
 
-      {/* 3. Integrated Investigation Synthesis Banner */}
-      {(agentSummary || investigationResult) && (
-        <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200/60 shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-blue-900">
-              <Sparkles className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-blue-950">
-                Integrated Forensic Synthesis
+      {/* ============================================================
+          3. INVESTIGATION SUMMARY + RISK ASSESSMENT — Side by side
+          ============================================================ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-slide-up" style={{ animationDelay: '50ms' }}>
+        {/* Investigation Summary — Left 7 cols */}
+        <div className="lg:col-span-7 bg-white rounded-xl border border-gray-200/60 p-6 space-y-4">
+          <div>
+            <h2 className="text-[18px] font-semibold text-gray-900 tracking-tight">
+              Investigation Summary
+            </h2>
+            {investigationResult?.investigation_id && (
+              <span className="text-[11px] font-mono text-gray-400 mt-0.5 block">
+                {investigationResult.investigation_id}
               </span>
-              {investigationResult?.investigation_id && (
-                <span className="text-[11px] font-mono text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md border border-blue-200">
-                  {investigationResult.investigation_id}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
-              Status: {investigationStatus}
-            </span>
+            )}
           </div>
-          {agentSummary && (
-            <p className="text-xs text-blue-950 leading-relaxed bg-white/80 p-3.5 rounded-xl border border-blue-100">
+
+          {agentSummary ? (
+            <p className="text-[14px] text-gray-700 leading-relaxed">
               {agentSummary}
             </p>
+          ) : (
+            <p className="text-[14px] text-gray-400 italic">
+              Run an investigation to generate the forensic summary.
+            </p>
+          )}
+
+          {/* Inline Hypotheses Summary */}
+          {hypotheses.length > 0 && (
+            <HypothesisPanel hypotheses={hypotheses} />
           )}
         </div>
-      )}
 
-      {/* 4. Interactive Neighborhood Graph */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between px-1 flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <Network className="w-4 h-4 text-blue-600" />
-            <h2 className="text-[14px] font-semibold text-gray-900 tracking-tight">
-              Target Entity Neighborhood Graph (2 Hops)
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to={`/graph?query=shared-devices&target=${selectedAccountId}`}
-              className="px-2.5 py-1 rounded-lg bg-white hover:bg-teal-50 text-teal-700 text-xs font-medium border border-teal-200 shadow-2xs transition-all flex items-center gap-1.5"
-              title="Inspect Shared Device Ring in Graph Explorer"
-            >
-              <Smartphone className="w-3.5 h-3.5 text-teal-600" />
-              <span>Shared Device</span>
-            </Link>
-            <Link
-              to={`/graph?query=shared-ips&target=${selectedAccountId}`}
-              className="px-2.5 py-1 rounded-lg bg-white hover:bg-orange-50 text-orange-700 text-xs font-medium border border-orange-200 shadow-2xs transition-all flex items-center gap-1.5"
-              title="Inspect Shared IP Cluster in Graph Explorer"
-            >
-              <Globe className="w-3.5 h-3.5 text-orange-600" />
-              <span>Shared IP</span>
-            </Link>
-            <span className="text-xs text-gray-400 hidden md:inline ml-1">
-              • Click any node to inspect telemetry
-            </span>
-          </div>
+        {/* Risk Assessment — Right 5 cols */}
+        <div className="lg:col-span-5">
+          <RiskPanel assessment={riskAssessment} />
         </div>
+      </div>
 
-        <InvestigationGraph
-          nodes={graphNodes}
-          edges={graphEdges}
-          targetAccountId={selectedAccountId}
-          selectedNodeId={selectedGraphNodeId}
-          onSelectNode={(node) => handleSelectEntity(node.id)}
-          loading={isLoading}
+      {/* ============================================================
+          4. FINDINGS — Full width
+          ============================================================ */}
+      <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
+        <FindingList
+          findings={findings}
+          onSelectEntity={handleSelectEntity}
         />
       </div>
 
-      {/* 5. Main 2-Column Forensic Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        {/* Left Column: Risk & Pattern Analysis */}
-        <div className="space-y-6">
-          {/* Risk Panel (Phase 5) */}
-          <RiskPanel assessment={riskAssessment} />
+      {/* ============================================================
+          5. EVIDENCE + NEXT BEST ACTIONS — Side by side
+          ============================================================ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-slide-up" style={{ animationDelay: '150ms' }}>
+        {/* Evidence */}
+        <EvidencePanel
+          evidence={evidenceItems}
+          uncertainties={uncertainties}
+        />
 
-          {/* Fraud Pattern Findings (Phase 3) */}
-          <FindingList
-            findings={findings}
-            onSelectEntity={handleSelectEntity}
-          />
+        {/* Next Best Actions */}
+        <ActionList
+          actionPlan={actionPlan}
+          onSelectEntity={handleSelectEntity}
+        />
+      </div>
 
-          {/* Hypotheses Panel (Phase 4) */}
-          <HypothesisPanel hypotheses={hypotheses} />
-        </div>
+      {/* ============================================================
+          6. RELATIONSHIP GRAPH — Full width, collapsible
+          ============================================================ */}
+      <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <button
+          onClick={() => setGraphExpanded(!graphExpanded)}
+          className="w-full flex items-center justify-between py-3 text-left group"
+        >
+          <div className="flex items-center gap-2">
+            <Network className="w-4 h-4 text-gray-400" />
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">
+              Relationship Graph
+            </h2>
+            <span className="text-[11px] font-mono text-gray-400">
+              {graphNodes.length} nodes · {graphEdges.length} edges
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/graph?target=${selectedAccountId}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-[12px] text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Open full explorer →
+            </Link>
+            {graphExpanded
+              ? <ChevronUp className="w-4 h-4 text-gray-400" />
+              : <ChevronDown className="w-4 h-4 text-gray-400" />
+            }
+          </div>
+        </button>
 
-        {/* Right Column: Advisory Actions & Telemetry Evidence */}
-        <div className="space-y-6">
-          {/* Next Best Actions (Phase 6) */}
-          <ActionList
-            actionPlan={actionPlan}
-            onSelectEntity={handleSelectEntity}
-          />
+        {graphExpanded && (
+          <div className="animate-expand-down">
+            <InvestigationGraph
+              nodes={graphNodes}
+              edges={graphEdges}
+              targetAccountId={selectedAccountId}
+              selectedNodeId={selectedGraphNodeId}
+              onSelectNode={(node) => handleSelectEntity(node.id)}
+              loading={isLoading}
+            />
+          </div>
+        )}
+      </div>
 
-          {/* Grounding Evidence & Blind Spots */}
-          <EvidencePanel
-            evidence={evidenceItems}
-            uncertainties={uncertainties}
-          />
+      {/* ============================================================
+          7. INVESTIGATION TIMELINE — Collapsed by default
+          ============================================================ */}
+      <div className="animate-slide-up" style={{ animationDelay: '250ms' }}>
+        <button
+          onClick={() => setTimelineExpanded(!timelineExpanded)}
+          className="w-full flex items-center justify-between py-3 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <h2 className="text-[15px] font-semibold text-gray-900 tracking-tight">
+              Investigation Timeline
+            </h2>
+            <span className="text-[11px] font-mono text-gray-400">
+              {auditTrail.length} steps
+            </span>
+          </div>
+          {timelineExpanded
+            ? <ChevronUp className="w-4 h-4 text-gray-400" />
+            : <ChevronDown className="w-4 h-4 text-gray-400" />
+          }
+        </button>
 
-          {/* Immutable Agent Audit Trail */}
-          <AuditTimeline auditTrail={auditTrail} />
-        </div>
+        {timelineExpanded && (
+          <div className="animate-expand-down">
+            <AuditTimeline auditTrail={auditTrail} />
+          </div>
+        )}
       </div>
     </div>
   );

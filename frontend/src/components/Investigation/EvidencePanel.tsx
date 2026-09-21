@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FileText, AlertTriangle, ShieldCheck, HelpCircle, Smartphone, Globe } from 'lucide-react';
+import { FileText, AlertTriangle, ShieldCheck } from 'lucide-react';
 import type { EvidenceItem } from '../../types';
 
 interface EvidencePanelProps {
@@ -9,153 +8,118 @@ interface EvidencePanelProps {
 }
 
 export const EvidencePanel: React.FC<EvidencePanelProps> = ({ evidence, uncertainties }) => {
-  const [activeTab, setActiveTab] = useState<'evidence' | 'uncertainties'>('evidence');
+  const [activeTab, setActiveTab] = useState<'evidence' | 'gaps'>('evidence');
 
-  const getBorderAccent = (severity?: string) => {
+  const getSeverityAccent = (severity?: string) => {
     switch (severity) {
-      case 'CRITICAL':
-        return 'border-l-red-500';
-      case 'HIGH':
-        return 'border-l-orange-500';
-      default:
-        return 'border-l-blue-500';
+      case 'CRITICAL': return 'severity-critical';
+      case 'HIGH': return 'severity-high';
+      default: return 'severity-low';
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-6 space-y-4">
-      {/* Header & Tabs */}
-      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-        <div className="bg-gray-100 rounded-lg p-0.5 flex gap-0.5">
-          <button
-            onClick={() => setActiveTab('evidence')}
-            className={`flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md transition-all ${
-              activeTab === 'evidence'
-                ? 'bg-white text-gray-900 font-semibold shadow-xs'
-                : 'text-gray-500 hover:text-gray-800'
-            }`}
-          >
-            <FileText className="w-3.5 h-3.5 text-blue-600" />
-            Evidence Items ({evidence.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('uncertainties')}
-            className={`flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md transition-all ${
-              activeTab === 'uncertainties'
-                ? 'bg-white text-gray-900 font-semibold shadow-xs'
-                : 'text-gray-500 hover:text-gray-800'
-            }`}
-          >
-            <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
-            Evidence Gaps ({uncertainties.length})
-          </button>
+    <div className="bg-white rounded-xl border border-gray-200/60 p-5 space-y-4">
+      {/* Header with tabs */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
+            Evidence
+          </h3>
+          <div className="bg-gray-100 rounded-lg p-0.5 flex gap-0.5">
+            <button
+              onClick={() => setActiveTab('evidence')}
+              className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all flex items-center gap-1 ${
+                activeTab === 'evidence'
+                  ? 'bg-white text-gray-900 font-semibold shadow-xs'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              <FileText className="w-3 h-3" />
+              Items ({evidence.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('gaps')}
+              className={`text-[11px] font-medium px-2.5 py-1 rounded-md transition-all flex items-center gap-1 ${
+                activeTab === 'gaps'
+                  ? 'bg-white text-gray-900 font-semibold shadow-xs'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              <AlertTriangle className="w-3 h-3" />
+              Gaps ({uncertainties.length})
+            </button>
+          </div>
         </div>
-        <span className="text-[11px] text-gray-400 font-medium hidden sm:inline">
-          Forensic Grounding
-        </span>
       </div>
 
-      {/* Tab: Evidence */}
+      {/* Tab: Evidence — Forensic log treatment */}
       {activeTab === 'evidence' && (
-        <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1 stagger-children">
           {evidence.length === 0 ? (
-            <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 text-center text-xs text-gray-500">
-              No specific evidence items recorded.
+            <div className="p-6 rounded-lg bg-gray-50 text-center text-[13px] text-gray-400">
+              No evidence items recorded.
             </div>
           ) : (
             evidence.map((item, idx) => (
               <div
                 key={idx}
-                className={`p-3.5 rounded-xl bg-gray-50 border border-gray-200/60 border-l-4 ${getBorderAccent(
-                  item.severity
-                )} transition-colors text-xs`}
+                className={`rounded-lg bg-gray-50 p-3.5 ${getSeverityAccent(item.severity)} card-hover`}
               >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-mono font-semibold text-gray-900">
-                      {item.rule}
-                    </span>
-                    {item.pattern && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white border border-gray-200 text-gray-700">
-                        {item.pattern}
-                      </span>
-                    )}
-                    {(item.rule === 'DEVICE_SHARING_DETECTED' || item.pattern === 'SHARED_DEVICE_RING') && (
-                      <Link
-                        to="/graph?query=shared-devices"
-                        className="text-[10px] font-medium px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 inline-flex items-center gap-1 transition-colors"
-                        title="Explore Shared Device in Graph Explorer"
-                      >
-                        <Smartphone className="w-3 h-3 text-teal-600" />
-                        <span>Shared Device</span>
-                      </Link>
-                    )}
-                    {(item.rule === 'PROXY_IP_CLUSTER' || item.pattern === 'SHARED_IP_CLUSTER') && (
-                      <Link
-                        to="/graph?query=shared-ips"
-                        className="text-[10px] font-medium px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 inline-flex items-center gap-1 transition-colors"
-                        title="Explore Shared IP in Graph Explorer"
-                      >
-                        <Globe className="w-3 h-3 text-orange-600" />
-                        <span>Shared IP</span>
-                      </Link>
-                    )}
-                  </div>
-                  {item.severity && (
-                    <span
-                      className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
-                        item.severity === 'CRITICAL'
-                          ? 'bg-red-50 border-red-200 text-red-600'
-                          : item.severity === 'HIGH'
-                          ? 'bg-orange-50 border-orange-200 text-orange-600'
-                          : 'bg-gray-100 border-gray-200 text-gray-700'
-                      }`}
-                    >
-                      {item.severity}
-                    </span>
-                  )}
+                {/* Rule name — monospace, uppercase */}
+                <div className="evidence-log">
+                  <div className="evidence-rule">{item.rule}</div>
                 </div>
 
-                <p className="text-gray-700 text-[11px] leading-relaxed">
+                {/* Detail — primary body */}
+                <p className="text-[13px] text-gray-700 mt-1 leading-relaxed">
                   {item.detail}
                 </p>
 
-                {item.metrics && Object.keys(item.metrics).length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-mono bg-white p-2 rounded-lg border border-gray-200/60 text-gray-700">
-                    {Object.entries(item.metrics).map(([k, v]) => (
-                      <span key={k}>
-                        <span className="text-gray-500">{k}:</span> {String(v)}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Structured metadata */}
+                <div className="mt-2 space-y-1">
+                  {item.pattern && (
+                    <div className="flex items-start gap-2 text-[12px]">
+                      <span className="text-gray-400 shrink-0 w-14">Source</span>
+                      <span className="font-mono text-gray-600">{item.pattern.replace(/_/g, ' ')}</span>
+                    </div>
+                  )}
+                  {item.metrics && Object.keys(item.metrics).length > 0 && (
+                    <>
+                      {/* Extract entity-like values from metrics */}
+                      {Object.entries(item.metrics).map(([k, v]) => (
+                        <div key={k} className="flex items-start gap-2 text-[12px]">
+                          <span className="text-gray-400 shrink-0 w-14 truncate">{k}</span>
+                          <span className="font-mono text-gray-600">{String(v)}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
               </div>
             ))
           )}
         </div>
       )}
 
-      {/* Tab: Uncertainties / Gaps */}
-      {activeTab === 'uncertainties' && (
-        <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+      {/* Tab: Evidence Gaps */}
+      {activeTab === 'gaps' && (
+        <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1 stagger-children">
           {uncertainties.length === 0 ? (
-            <div className="p-6 rounded-xl bg-green-50 border border-green-200/60 text-center text-xs text-green-700 flex items-center justify-center gap-2">
+            <div className="p-5 rounded-lg bg-green-50 text-center text-[13px] text-green-700 flex items-center justify-center gap-2">
               <ShieldCheck className="w-4 h-4 text-green-600" />
-              <span>Full evidence coverage. No critical telemetry gaps identified.</span>
+              <span>Full evidence coverage. No critical gaps identified.</span>
             </div>
           ) : (
             uncertainties.map((unc, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-xl bg-amber-50 border border-amber-200/60 flex items-start gap-2.5 text-xs text-amber-900"
+                className="rounded-lg bg-amber-50/60 p-3.5 severity-medium"
               >
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <div className="font-semibold text-amber-950 text-[12px]">
-                    Uncertainty / Information Blindspot #{idx + 1}
-                  </div>
-                  <div className="text-amber-800/90 text-xs mt-0.5">{unc}</div>
+                <div className="text-[12px] font-semibold text-amber-800">
+                  Evidence Gap #{idx + 1}
                 </div>
+                <div className="text-[13px] text-amber-700 mt-0.5 leading-relaxed">{unc}</div>
               </div>
             ))
           )}

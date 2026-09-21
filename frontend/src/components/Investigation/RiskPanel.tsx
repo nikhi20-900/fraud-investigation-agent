@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import {
-  ShieldAlert,
-  AlertTriangle,
-  Layers,
   ChevronDown,
   ChevronUp,
   TrendingDown,
@@ -25,223 +22,185 @@ export const RiskPanel: React.FC<RiskPanelProps> = ({
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm animate-pulse space-y-4">
-        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="h-20 bg-gray-100 rounded-xl"></div>
-          <div className="h-20 bg-gray-100 rounded-xl"></div>
-          <div className="h-20 bg-gray-100 rounded-xl"></div>
-          <div className="h-20 bg-gray-100 rounded-xl"></div>
-        </div>
+      <div className="bg-white border border-gray-200/60 rounded-xl p-6 space-y-4">
+        <div className="h-4 bg-gray-100 rounded w-1/3 animate-shimmer" />
+        <div className="h-16 bg-gray-50 rounded-lg animate-shimmer" />
+        <div className="h-3 bg-gray-100 rounded w-2/3 animate-shimmer" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200/60 rounded-2xl p-6 shadow-sm text-red-600 text-xs flex items-center gap-3">
-        <AlertTriangle className="w-5 h-5 shrink-0 text-red-500" />
-        <span>Failed to load risk assessment: {error}</span>
+      <div className="bg-red-50 border border-red-200/60 rounded-xl p-5 text-red-600 text-[13px]">
+        Failed to load risk assessment: {error}
       </div>
     );
   }
 
   if (!assessment) {
     return (
-      <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm text-gray-400 text-xs text-center">
-        No risk assessment available. Execute an investigation to generate risk telemetry.
+      <div className="bg-white border border-gray-200/60 rounded-xl p-6">
+        <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight mb-2">
+          Risk Assessment
+        </h3>
+        <p className="text-[13px] text-gray-400">
+          Run an investigation to generate the risk assessment.
+        </p>
       </div>
     );
   }
 
   const { risk_score, risk_tier, uncertainty, evidence_coverage, explanation, risk_factors } = assessment;
 
-  // Tier color styling
-  const tierColors: Record<string, { bg: string; text: string; border: string }> = {
-    CRITICAL: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' },
-    HIGH: { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200' },
-    MEDIUM: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-    LOW: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+  // Semantic summary from quadrant
+  const getSemanticSummary = () => {
+    const riskLabel = risk_score >= 70 ? 'High risk' : risk_score >= 40 ? 'Moderate risk' : 'Low risk';
+    const uncLabel = uncertainty.uncertainty_score >= 60 ? 'High uncertainty' : uncertainty.uncertainty_score >= 30 ? 'Moderate uncertainty' : 'Low uncertainty';
+    return `${riskLabel} · ${uncLabel}`;
   };
 
-  const currentTier = tierColors[risk_tier] || tierColors.LOW;
+  const getConfidenceStatement = () => {
+    const coverage = Math.round(evidence_coverage * 100);
+    if (coverage >= 80) return 'Evidence-backed assessment';
+    if (coverage >= 50) return 'Partial evidence coverage';
+    return 'Limited evidence available';
+  };
+
+  const getRiskColor = () => {
+    if (risk_score >= 70) return 'text-red-600';
+    if (risk_score >= 40) return 'text-amber-600';
+    return 'text-green-600';
+  };
+
+  const getTierBadge = () => {
+    switch (risk_tier) {
+      case 'CRITICAL': return 'bg-red-50 text-red-600 border-red-200';
+      case 'HIGH': return 'bg-orange-50 text-orange-600 border-orange-200';
+      case 'MEDIUM': return 'bg-amber-50 text-amber-700 border-amber-200';
+      default: return 'bg-green-50 text-green-700 border-green-200';
+    }
+  };
 
   const posFactors = risk_factors.filter((f) => !f.mitigating);
   const mitFactors = risk_factors.filter((f) => f.mitigating);
 
   return (
-    <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-            <ShieldAlert className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-[15px] font-semibold text-gray-900 tracking-tight">
-              Risk & Uncertainty Assessment
-            </h3>
-            <p className="text-[12px] text-gray-400">
-              Deterministic, explainable scoring synthesized from Phase 3 & 4 forensic facts
-            </p>
-          </div>
-        </div>
+    <div className="bg-white border border-gray-200/60 rounded-xl p-6 space-y-5 h-full">
+      {/* Section Label */}
+      <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+        Risk Assessment
+      </div>
 
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider border ${currentTier.bg} ${currentTier.text} ${currentTier.border}`}
-          >
-            {risk_tier} RISK
+      {/* ── Visual Anchor: Giant Risk Number ── */}
+      <div className="text-center py-2">
+        <div className={`text-[56px] font-bold font-mono tracking-tighter leading-none animate-count-up ${getRiskColor()}`}>
+          {risk_score.toFixed(0)}
+        </div>
+        <div className="mt-2">
+          <span className={`text-[12px] font-semibold px-3 py-1 rounded-full border ${getTierBadge()}`}>
+            {risk_tier}
           </span>
         </div>
-      </div>
-
-      {/* 4 Score Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Risk Score — Visually Dominant Lead Metric */}
-        <div className={`p-4 rounded-xl ${currentTier.bg} border-2 ${currentTier.border} space-y-1 shadow-xs`}>
-          <div className="flex items-center justify-between text-[12px] font-semibold text-gray-700">
-            <span>Risk Score</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white font-bold border border-gray-200/80">
-              {risk_tier}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className={`text-[32px] font-bold tracking-tight font-mono ${currentTier.text}`}>
-              {risk_score.toFixed(1)}
-            </span>
-            <span className="text-[11px] font-mono text-gray-500">/ 100</span>
-          </div>
-          <div className="text-[11px] text-gray-600 font-medium">Calibrated exposure score</div>
+        <div className="mt-3 text-[13px] text-gray-500 font-medium">
+          {getSemanticSummary()}
         </div>
-
-        {/* Uncertainty Score */}
-        <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
-          <div className="flex items-center justify-between text-[12px] font-medium text-gray-600">
-            <span>Uncertainty</span>
-            <span className="text-[11px] text-gray-500 font-mono">0–100</span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-[28px] font-semibold tracking-tight font-mono text-blue-600">
-              {uncertainty.uncertainty_score.toFixed(1)}
-            </span>
-            <span className="text-[11px] text-gray-500 ml-1">({uncertainty.uncertainty_tier})</span>
-          </div>
-          <div className="text-[11px] text-gray-500">Ambiguity / info gap</div>
-        </div>
-
-        {/* Strategic Matrix Quadrant */}
-        <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
-          <div className="text-[12px] font-medium text-gray-600">Decision Quadrant</div>
-          <div className="text-sm font-semibold text-gray-900 truncate pt-1">
-            {uncertainty.quadrant.replace(/_/g, ' ')}
-          </div>
-          <div className="text-[11px] text-gray-500">Risk × Uncertainty Matrix</div>
-        </div>
-
-        {/* Evidence Coverage */}
-        <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
-          <div className="flex items-center justify-between text-[12px] font-medium text-gray-600">
-            <span>Evidence Coverage</span>
-            <span className="text-xs font-mono font-medium text-gray-700">
-              {(evidence_coverage * 100).toFixed(0)}%
-            </span>
-          </div>
-          <div className="w-full h-1.5 bg-gray-200/80 rounded-full overflow-hidden mt-3">
-            <div
-              className="h-full bg-blue-500 transition-all duration-500"
-              style={{ width: `${Math.min(100, evidence_coverage * 100)}%` }}
-            />
-          </div>
-          <div className="text-[11px] text-gray-500 pt-0.5">Profile completeness</div>
+        <div className="mt-1 text-[12px] text-gray-400">
+          {getConfidenceStatement()}
         </div>
       </div>
 
-      {/* Explanation Rationale Banner */}
-      <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 text-xs text-gray-700 leading-relaxed">
-        <span className="font-semibold text-blue-600">Audit Derivation: </span>
-        {explanation}
+      {/* ── Compact Metrics ── */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gray-50 rounded-lg px-3.5 py-2.5">
+          <div className="text-[11px] text-gray-400 font-medium">Uncertainty</div>
+          <div className="text-[16px] font-semibold font-mono text-gray-800 mt-0.5">
+            {uncertainty.uncertainty_score.toFixed(0)}
+            <span className="text-[11px] text-gray-400 font-normal ml-1">{uncertainty.uncertainty_tier}</span>
+          </div>
+        </div>
+        <div className="bg-gray-50 rounded-lg px-3.5 py-2.5">
+          <div className="text-[11px] text-gray-400 font-medium">Evidence</div>
+          <div className="text-[16px] font-semibold font-mono text-gray-800 mt-0.5">
+            {Math.round(evidence_coverage * 100)}%
+            <span className="text-[11px] text-gray-400 font-normal ml-1">coverage</span>
+          </div>
+        </div>
       </div>
 
-      {/* Collapsible Provenance Risk Factors */}
-      <div className="border-t border-gray-100 pt-4">
-        <button
-          type="button"
-          onClick={() => setShowFactors(!showFactors)}
-          className="w-full flex items-center justify-between text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-600" />
+      {/* ── Assessment Explanation ── */}
+      {explanation && (
+        <p className="text-[13px] text-gray-600 leading-relaxed">
+          {explanation}
+        </p>
+      )}
+
+      {/* ── Risk Factors (Collapsible) ── */}
+      {risk_factors.length > 0 && (
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowFactors(!showFactors)}
+            className="w-full flex items-center justify-between text-[12px] font-medium text-gray-500 hover:text-gray-700 transition-colors py-1"
+          >
             <span>
-              Risk Factor Breakdown ({posFactors.length} escalating, {mitFactors.length} mitigating)
+              {posFactors.length} risk factors · {mitFactors.length} mitigating
             </span>
-          </div>
-          {showFactors ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-        </button>
+            {showFactors ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
 
-        {showFactors && (
-          <div className="mt-3 space-y-2.5">
-            {/* Escalating Factors */}
-            {posFactors.map((rf) => (
-              <div
-                key={rf.factor_id}
-                className="p-3.5 rounded-xl bg-gray-50 border border-gray-200/60 flex items-start justify-between gap-3 text-xs"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-red-500" />
-                    <span className="font-semibold text-gray-900">{rf.name}</span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200/60 text-gray-600">
-                      {rf.severity}
-                    </span>
-                    <span className="text-[10px] font-mono text-blue-600">
-                      Evidence: {(rf.evidence_strength * 100).toFixed(0)}%
+          {showFactors && (
+            <div className="mt-2 space-y-2 animate-expand-down stagger-children">
+              {posFactors.map((rf) => (
+                <div
+                  key={rf.factor_id}
+                  className="severity-high rounded-lg bg-gray-50 p-3 text-[12px]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-3 h-3 text-red-500" />
+                      <span className="font-semibold text-gray-900">{rf.name}</span>
+                      <span className="text-[10px] font-mono text-gray-400">{rf.severity}</span>
+                    </div>
+                    <span className="font-mono font-semibold text-red-600 text-[11px]">
+                      +{rf.score_contribution.toFixed(1)}
                     </span>
                   </div>
-                  <p className="text-gray-500 text-[11px]">{rf.explanation}</p>
+                  <p className="text-gray-500 text-[11px] mt-1">{rf.explanation}</p>
                   {rf.entities.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <div className="flex flex-wrap gap-1 mt-1.5">
                       {rf.entities.map((e) => (
-                        <span
-                          key={e}
-                          className="px-1.5 py-0.5 rounded bg-white border border-gray-200 font-mono text-[10px] text-gray-600"
-                        >
+                        <span key={e} className="font-mono text-[10px] text-gray-500 bg-white px-1.5 py-0.5 rounded border border-gray-100">
                           {e}
                         </span>
                       ))}
                     </div>
                   )}
                 </div>
-                <span className="font-mono font-semibold text-red-600 whitespace-nowrap">
-                  +{rf.score_contribution.toFixed(1)} pts
-                </span>
-              </div>
-            ))}
+              ))}
 
-            {/* Mitigating Factors */}
-            {mitFactors.map((rf) => (
-              <div
-                key={rf.factor_id}
-                className="p-3.5 rounded-xl bg-green-50/40 border-l-4 border-l-green-500 border border-green-200/60 flex items-start justify-between gap-3 text-xs"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="w-3.5 h-3.5 text-green-600" />
-                    <span className="font-semibold text-green-900">{rf.name}</span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-green-100 text-green-700">
-                      Mitigating
+              {mitFactors.map((rf) => (
+                <div
+                  key={rf.factor_id}
+                  className="severity-low rounded-lg bg-green-50/40 p-3 text-[12px]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="w-3 h-3 text-green-600" />
+                      <span className="font-semibold text-green-900">{rf.name}</span>
+                      <span className="text-[10px] font-mono text-green-600">Mitigating</span>
+                    </div>
+                    <span className="font-mono font-semibold text-green-600 text-[11px]">
+                      {rf.score_contribution.toFixed(1)}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-[11px]">{rf.explanation}</p>
+                  <p className="text-gray-600 text-[11px] mt-1">{rf.explanation}</p>
                 </div>
-                <span className="font-mono font-semibold text-green-600 whitespace-nowrap">
-                  {rf.score_contribution.toFixed(1)} pts
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

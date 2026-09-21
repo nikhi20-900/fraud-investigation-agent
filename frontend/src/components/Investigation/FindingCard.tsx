@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronUp, ShieldAlert, Tag, Layers, Smartphone, Globe } from 'lucide-react';
 import type { FraudFinding } from '../../types';
 
 interface FindingCardProps {
@@ -9,101 +7,68 @@ interface FindingCardProps {
 }
 
 export const FindingCard: React.FC<FindingCardProps> = ({ finding, onSelectEntity }) => {
-  const [expanded, setExpanded] = useState(false);
-
-  const getSeverityBadge = (severity: string) => {
-    switch (severity.toUpperCase()) {
-      case 'CRITICAL':
-        return 'bg-red-50 text-red-600 border-red-200';
-      case 'HIGH':
-        return 'bg-orange-50 text-orange-600 border-orange-200';
-      case 'MEDIUM':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      default:
-        return 'bg-blue-50 text-blue-600 border-blue-200';
-    }
-  };
+  const [showEvidence, setShowEvidence] = useState(false);
 
   const confidencePct = Math.round((finding.confidence || 0) * 100);
 
-  return (
-    <div className="bg-white border border-gray-200/60 rounded-xl p-4 transition-all hover:shadow-xs shadow-none">
-      {/* Card Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="text-[13px] font-semibold text-gray-900 tracking-tight">
-                {finding.pattern.replace(/_/g, ' ')}
-              </h4>
-              {finding.pattern === 'SHARED_DEVICE_RING' && (
-                <Link
-                  to="/graph?query=shared-devices"
-                  className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2 py-0.5 rounded-full transition-colors"
-                  title="Explore Shared Device in Graph Explorer"
-                >
-                  <Smartphone className="w-3 h-3 text-teal-600" />
-                  <span>Shared Device</span>
-                </Link>
-              )}
-              {finding.pattern === 'SHARED_IP_CLUSTER' && (
-                <Link
-                  to="/graph?query=shared-ips"
-                  className="inline-flex items-center gap-1 text-[10px] font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-full transition-colors"
-                  title="Explore Shared IP in Graph Explorer"
-                >
-                  <Globe className="w-3 h-3 text-orange-600" />
-                  <span>Shared IP</span>
-                </Link>
-              )}
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${getSeverityBadge(finding.severity)}`}>
-                {finding.severity}
-              </span>
-              <span className="text-[11px] font-mono text-gray-500">
-                Confidence: <strong className="text-gray-800">{confidencePct}%</strong>
-              </span>
-              {finding.confidence_meaning && (
-                <span className="text-[11px] text-gray-400 hidden sm:inline">
-                  • {finding.confidence_meaning}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+  const getSeverityAccent = (severity: string) => {
+    switch (severity.toUpperCase()) {
+      case 'CRITICAL': return 'severity-critical';
+      case 'HIGH': return 'severity-high';
+      case 'MEDIUM': return 'severity-medium';
+      default: return 'severity-low';
+    }
+  };
 
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-          title={expanded ? 'Collapse details' : 'Expand details'}
-        >
-          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
+  const getSeverityColor = (severity: string) => {
+    switch (severity.toUpperCase()) {
+      case 'CRITICAL': return 'text-red-600';
+      case 'HIGH': return 'text-orange-600';
+      case 'MEDIUM': return 'text-amber-600';
+      default: return 'text-blue-600';
+    }
+  };
+
+  // Build a concise entity summary string
+  const entitySummary = finding.entities?.length
+    ? finding.entities.join(', ')
+    : '';
+
+  return (
+    <div className={`bg-white rounded-lg p-4 ${getSeverityAccent(finding.severity)} card-hover`}>
+      {/* Severity tag */}
+      <div className={`text-[11px] font-semibold uppercase tracking-wider ${getSeverityColor(finding.severity)} mb-1`}>
+        {finding.severity}
       </div>
 
-      {/* Scannable Explanation */}
+      {/* Pattern name — primary title */}
+      <h4 className="text-[15px] font-semibold text-gray-900 tracking-tight leading-snug">
+        {finding.pattern.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).toLowerCase().replace(/^./, (c) => c.toUpperCase())}
+      </h4>
+
+      {/* Confidence */}
+      <div className="text-[13px] text-gray-500 mt-1">
+        {confidencePct}% evidence confidence
+        {finding.confidence_meaning && (
+          <span className="text-gray-400"> · {finding.confidence_meaning}</span>
+        )}
+      </div>
+
+      {/* Explanation as single-line description */}
       {finding.explanation && (
-        <p className={`mt-2.5 text-xs text-gray-600 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
+        <p className="text-[13px] text-gray-600 mt-2 leading-relaxed">
           {finding.explanation}
         </p>
       )}
 
-      {/* Entities Tag Cloud */}
-      {finding.entities && finding.entities.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 pt-2 border-t border-gray-100">
-          <span className="text-[10px] font-medium text-gray-400 flex items-center gap-1 mr-1">
-            <Tag className="w-3 h-3 text-gray-400" />
-            Entities:
-          </span>
+      {/* Entities as inline text */}
+      {entitySummary && (
+        <div className="mt-2 flex flex-wrap gap-1">
           {finding.entities.map((entityId) => (
             <button
               key={entityId}
               onClick={() => onSelectEntity && onSelectEntity(entityId)}
-              className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-gray-50 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors border border-gray-100"
             >
               {entityId}
             </button>
@@ -111,40 +76,38 @@ export const FindingCard: React.FC<FindingCardProps> = ({ finding, onSelectEntit
         </div>
       )}
 
-      {/* Expandable Evidence Rules */}
-      {expanded && finding.evidence && finding.evidence.length > 0 && (
-        <div className="mt-3.5 pt-3 border-t border-gray-100 space-y-2">
-          <div className="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-blue-600" />
-            Underlying Evidence Rules ({finding.evidence.length})
-          </div>
-          <div className="space-y-1.5">
-            {finding.evidence.map((ev, idx) => (
-              <div
-                key={idx}
-                className="p-2.5 rounded-lg bg-gray-50 border border-gray-200/60 text-xs"
-              >
-                <div className="flex items-center justify-between text-[11px] mb-1">
-                  <span className="font-mono font-medium text-gray-900">{ev.rule}</span>
-                  {ev.severity && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white text-gray-600 border border-gray-200">
-                      {ev.severity}
-                    </span>
+      {/* View evidence toggle */}
+      {finding.evidence && finding.evidence.length > 0 && (
+        <div className="mt-3">
+          <button
+            onClick={() => setShowEvidence(!showEvidence)}
+            className="text-[12px] font-medium text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            {showEvidence ? 'Hide evidence' : `View evidence (${finding.evidence.length})`}
+          </button>
+
+          {showEvidence && (
+            <div className="mt-2 space-y-1.5 animate-expand-down">
+              {finding.evidence.map((ev, idx) => (
+                <div
+                  key={idx}
+                  className="evidence-log bg-gray-50 rounded-lg p-3 border border-gray-100"
+                >
+                  <div className="evidence-rule text-[11px]">{ev.rule}</div>
+                  <div className="evidence-detail text-[12px] mt-0.5">{ev.detail}</div>
+                  {ev.metrics && Object.keys(ev.metrics).length > 0 && (
+                    <div className="evidence-meta mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                      {Object.entries(ev.metrics).map(([k, v]) => (
+                        <span key={k}>
+                          <span className="text-gray-400">{k}:</span> {String(v)}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-                <div className="text-gray-600 text-[11px]">{ev.detail}</div>
-                {ev.metrics && Object.keys(ev.metrics).length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-2 text-[10px] font-mono text-gray-500 bg-white p-1.5 rounded border border-gray-100">
-                    {Object.entries(ev.metrics).map(([k, v]) => (
-                      <span key={k}>
-                        <span className="text-gray-400">{k}:</span> {String(v)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

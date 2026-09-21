@@ -27,28 +27,33 @@ const AppContent: React.FC = () => {
     switch (location.pathname) {
       case '/':
         return {
-          title: 'Dashboard',
-          subtitle: 'Real-time telemetry and priority queues',
+          title: 'Overview',
+          subtitle: 'Operations and priority queue',
         };
       case '/cases':
         return {
-          title: 'Case Directory',
-          subtitle: 'Active alerts and behavioral anomalies',
+          title: 'Cases',
+          subtitle: 'Active investigations and alerts',
         };
       case '/investigation':
         return {
-          title: 'Investigation Workspace',
-          subtitle: 'Deep dive anomaly review and agent dispatch',
+          title: 'Investigations',
+          subtitle: '',
         };
       case '/graph':
         return {
           title: 'Graph Explorer',
-          subtitle: 'Multi-hop entity association network',
+          subtitle: 'Entity relationship network',
+        };
+      case '/evaluation':
+        return {
+          title: 'Evaluation',
+          subtitle: 'System performance metrics',
         };
       default:
         return {
-          title: 'FraudWatch',
-          subtitle: 'Investigation Workstation',
+          title: 'Fraud Intelligence',
+          subtitle: '',
         };
     }
   };
