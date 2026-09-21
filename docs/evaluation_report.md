@@ -18,13 +18,15 @@ The evaluation was executed 100% offline using the synthetic fraud graph dataset
 
 | Evaluation Category | Status | Summary Finding |
 |:---|:---:|:---|
+| **Comprehensive Test Suite** | **PASS** | 91/91 tests passing with zero regressions across unit, integration, and evaluation suites. |
 | **Scenario Coverage** | **PASS** | 100% coverage across 7 synthetic scenarios (Normal, Device Ring, IP Cluster, Merchant Collusion, Layering, Velocity, Multi-Account). |
 | **Determinism** | **PASS** | `Run 1 == Run 2 == Run 3` verified across 4 representative accounts for risk scores, tiers, findings, entities, and actions. |
 | **Risk Engine** | **PASS** | Mathematical score boundedness [0.0, 100.0], qualitative ordering invariants preserved, and strict independence between risk and uncertainty. |
-| **Recommendation Engine** | **PASS** | Evidence-to-action alignment verified, zero duplicate action types, bounded priority scores, zero intrusive actions on clean accounts. |
-| **Agent Grounding & Traceability** | **PASS** | 133/133 entities verified; 0 fabricated account, device, IP, transaction, or merchant IDs; 0 invented findings on normal accounts. |
+| **Recommendation Engine** | **PASS** | Evidence-to-action alignment verified, zero duplicate action types, bounded priority scores, advisory actions only. |
+| **Agent Grounding & Traceability** | **PASS** | 133/133 entities verified; 0 fabricated IDs; 0 untraceable entities; 0 invented findings on normal accounts. |
 | **API Robustness** | **PASS** | 422 for schema validation, 404 for unknown resources; zero leakage of stack traces, filesystem paths, or secrets. |
 | **Performance Baseline** | **PASS** | Local simulator evaluation established a baseline of approximately 2.5–3.6 ms for the tested synthetic scenarios. |
+
 
 ### Key Architectural Distinctions
 

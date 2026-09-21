@@ -14,6 +14,11 @@ import json
 from typing import Dict, List, Any, Optional, Set
 
 
+ACCOUNT_ALIASES: Dict[str, str] = {
+    "ACC-4091": "ACC-RING-001",
+}
+
+
 class GraphService:
     def __init__(self, data_path: Optional[str] = None):
         if data_path is None:
@@ -47,9 +52,10 @@ class GraphService:
         self.edges = data.get("edges", {})
 
     def get_vertex(self, vertex_id: str) -> Optional[Dict[str, Any]]:
+        resolved_id = ACCOUNT_ALIASES.get(vertex_id, vertex_id)
         for v_type, v_map in self.vertices.items():
-            if vertex_id in v_map:
-                res = dict(v_map[vertex_id])
+            if resolved_id in v_map:
+                res = dict(v_map[resolved_id])
                 res["_type"] = v_type
                 return res
         return None
@@ -61,14 +67,15 @@ class GraphService:
         """
         Expands up to max_hops from seed_account to return the neighborhood subgraph.
         """
-        account = self.vertices.get("Account", {}).get(seed_account_id)
+        resolved_seed = ACCOUNT_ALIASES.get(seed_account_id, seed_account_id)
+        account = self.vertices.get("Account", {}).get(resolved_seed)
         if not account:
             return {"error": f"Account '{seed_account_id}' not found", "nodes": [], "edges": []}
 
-        visited_nodes: Set[str] = {seed_account_id}
+        visited_nodes: Set[str] = {resolved_seed}
         collected_edges: List[Dict[str, Any]] = []
 
-        current_level = {seed_account_id}
+        current_level = {resolved_seed}
 
         for hop in range(max_hops):
             next_level = set()
@@ -227,16 +234,17 @@ class GraphService:
         """
         Detects accounts connected to seed_account through 2-hop entity sharing (Device, IP, Card).
         """
+        resolved_seed = ACCOUNT_ALIASES.get(seed_account_id, seed_account_id)
         # Find all devices, IPs, and cards used by seed_account
-        seed_devices = {e["to_device"] for e in self.edges.get("USES_DEVICE", []) if e["from_account"] == seed_account_id}
-        seed_ips = {e["to_ip"] for e in self.edges.get("CONNECTED_FROM", []) if e["from_account"] == seed_account_id}
-        seed_cards = {e["to_card"] for e in self.edges.get("USES_CARD", []) if e["from_account"] == seed_account_id}
+        seed_devices = {e["to_device"] for e in self.edges.get("USES_DEVICE", []) if e["from_account"] == resolved_seed}
+        seed_ips = {e["to_ip"] for e in self.edges.get("CONNECTED_FROM", []) if e["from_account"] == resolved_seed}
+        seed_cards = {e["to_card"] for e in self.edges.get("USES_CARD", []) if e["from_account"] == resolved_seed}
 
         connections: List[Dict[str, str]] = []
 
         # Find other accounts using the same devices
         for e in self.edges.get("USES_DEVICE", []):
-            if e["to_device"] in seed_devices and e["from_account"] != seed_account_id:
+            if e["to_device"] in seed_devices and e["from_account"] != resolved_seed:
                 connections.append({
                     "target_account_id": e["from_account"],
                     "shared_entity_type": "Device",
@@ -245,7 +253,7 @@ class GraphService:
 
         # Find other accounts using the same IPs
         for e in self.edges.get("CONNECTED_FROM", []):
-            if e["to_ip"] in seed_ips and e["from_account"] != seed_account_id:
+            if e["to_ip"] in seed_ips and e["from_account"] != resolved_seed:
                 connections.append({
                     "target_account_id": e["from_account"],
                     "shared_entity_type": "IP",
@@ -254,7 +262,7 @@ class GraphService:
 
         # Find other accounts using the same Cards
         for e in self.edges.get("USES_CARD", []):
-            if e["to_card"] in seed_cards and e["from_account"] != seed_account_id:
+            if e["to_card"] in seed_cards and e["from_account"] != resolved_seed:
                 connections.append({
                     "target_account_id": e["from_account"],
                     "shared_entity_type": "Card",
@@ -274,8 +282,9 @@ class GraphService:
         """
         Traces multi-hop transaction flows and money muling chains originating from source_account.
         """
+        resolved_source = ACCOUNT_ALIASES.get(source_account_id, source_account_id)
         paths = []
-        path_nodes: Set[str] = {source_account_id}
+        path_nodes: Set[str] = {resolved_source}
         path_edges: List[Dict[str, Any]] = []
 
         def dfs(curr_acc: str, current_path: List[str], depth: int):
@@ -304,7 +313,7 @@ class GraphService:
                     path_edges.append({"source": t_id, "target": m_id, "type": "PAID_TO"})
                     paths.append(current_path + [f"({curr_acc})-[MADE]->({t_id})-[PAID_TO]->({m_id})"])
 
-        dfs(source_account_id, [], 0)
+        dfs(resolved_source, [], 0)
 
         # Retrieve node details
         node_objects = [self.get_vertex(nid) for nid in path_nodes if self.get_vertex(nid)]

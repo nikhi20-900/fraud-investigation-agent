@@ -81,23 +81,29 @@ class InvestigationService:
             return self._custom_agent
         return get_agent()
 
-    def validate_target(self, case_id: str, target_account_id: str) -> Tuple[Any, Dict[str, Any]]:
+    def validate_target(self, case_id: str, target_account_id: str) -> Tuple[Any, Dict[str, Any], str]:
         """
         Validates case and target account existence against the system repository and graph.
-        Returns (case_obj, account_vertex) or raises HTTPException(404).
+        Returns (case_obj, account_vertex, resolved_account_id) or raises HTTPException(404).
         """
         case_obj = next((c for c in MOCK_CASES if c.id.upper() == case_id.upper()), None)
         if not case_obj:
             raise HTTPException(status_code=404, detail=f"Case '{case_id}' not found.")
 
-        acc_vertex = self.graph_svc.vertices.get("Account", {}).get(target_account_id)
+        # Alias resolution for demo/legacy identifiers
+        account_aliases = {
+            "ACC-4091": "ACC-RING-001",
+        }
+        resolved_acc_id = account_aliases.get(target_account_id, target_account_id)
+
+        acc_vertex = self.graph_svc.vertices.get("Account", {}).get(resolved_acc_id)
         if not acc_vertex:
             raise HTTPException(
                 status_code=404,
                 detail=f"Target account '{target_account_id}' not found in graph.",
             )
 
-        return case_obj, acc_vertex
+        return case_obj, acc_vertex, resolved_acc_id
 
     def run_investigation(
         self,
@@ -110,7 +116,9 @@ class InvestigationService:
         Executes the full end-to-end investigation pipeline for a case and target account.
         """
         # Step 0: Validate Case & Account Existence
-        case_obj, acc_vertex = self.validate_target(case_id, target_account_id)
+        case_obj, acc_vertex, resolved_account_id = self.validate_target(case_id, target_account_id)
+        target_account_id = resolved_account_id
+
 
         # Generate unique investigation ID
         inv_id = investigation_id or f"INV-{case_id.upper().replace('CASE-', '')}-{uuid.uuid4().hex[:6].upper()}"

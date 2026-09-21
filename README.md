@@ -1,6 +1,189 @@
-# Agentic Fraud Investigation Agent (Phase 1 — Foundation)
+# Agentic Fraud Investigation Agent
 
-An enterprise-ready foundation for AI-assisted fraud investigations. Combines graph relationship modeling, transaction telemetry, automated risk scoring, and interactive analyst workflows.
+An enterprise forensic intelligence system combining graph relationship analytics, deterministic heuristic detection, autonomous LangGraph reasoning, independent risk/uncertainty scoring, and auditable Next Best Action recommendations.
+
+```text
+TigerGraph + Graph Analytics
+        +
+Deterministic Fraud Detection
+        +
+LangGraph Agent
+        +
+Risk & Uncertainty Engine
+        +
+Next Best Action
+        =
+Auditable Fraud Investigation Platform
+```
+
+![Agentic Fraud Investigation Platform Demo](demo/screenshots/investigation-ring.png)
+*(See [demo/screenshots/README.md](demo/screenshots/README.md) for full visual capture guide and UI specs)*
+
+---
+
+## What This Project Does
+
+The Agentic Fraud Investigation Agent automates the end-to-end triaging, graph expansion, forensic pattern detection, risk evaluation, and operational action recommendation for financial crime analysts.
+
+When a suspicious case or account is flagged:
+1. **Traverses Relationship Topology:** Recursively expands 2-hop neighborhoods across accounts, cards, devices, IP nodes, and merchants.
+2. **Detects Heuristic Fraud Patterns:** Identifies co-located emulator rings, proxy clusters, multi-hop laundering cascades, and transaction velocity bursts.
+3. **Conducts Agentic Reasoning:** Deploys a stateful LangGraph multi-node agent that evaluates competing hypotheses, gathers corroborating graph facts, and identifies investigative blind spots.
+4. **Calculates Calibrated Risk & Uncertainty:** Evaluates risk severity independently from evidentiary completeness, placing accounts on an actionable 2x2 Decision Matrix.
+5. **Recommends Next Best Actions:** Produces prioritized, deduplicated, and explainable investigation steps (e.g., hardware telemetry requests, counterparty tracing) with estimated uncertainty reduction.
+6. **Delivers Single-Pane Dashboard:** Visualizes findings, interactive topology graphs, risk gauges, and immutable audit logs within an Apple-inspired forensic workspace.
+
+---
+
+## Why This Architecture
+
+Legacy fraud tools either rely on static rule engines that miss relational syndicate linkages or opaque black-box machine learning models that fail regulatory auditability requirements.
+
+| Traditional Approach | The Agentic Fraud Investigation Architecture |
+|:---|:---|
+| **Tabular SQL JOINs:** Slow, complex multi-hop queries ($O(N^k)$). | **Native Graph Topology:** Pointer-chasing edge traversal in near constant time ($O(E)$). |
+| **Black-Box AI Scoring:** Non-deterministic, hallucination-prone risk numbers. | **Separation of Concerns:** 100% deterministic risk scoring and action prioritization; LLM strictly confined to hypothesis evaluation. |
+| **Single Blended Score:** Conflates risk severity with evidence ambiguity. | **Independent Risk & Uncertainty:** High Risk $\ne$ High Uncertainty. Proven guilt and incomplete data are distinguished. |
+| **Alert-Only Outputs:** Leaves analysts stranded without operational guidance. | **Next Best Action (NBA):** Prioritized, deduplicated forensic action plans with clear rationale and provenance. |
+
+---
+
+## Key Capabilities
+
+- **Deterministic Rule Engine:** Produces identical risk scores, tiers, findings, and action rankings across repeated executions (`Run 1 == Run 2 == Run 3`).
+- **Graph Ring & Cluster Detection:** Pinpoints shared rooted emulators, anomalous proxy ASNs, and multi-account identity clusters.
+- **Multi-Hop Layering Tracing:** Traces serial transaction chains through intermediate mule accounts into offshore liquidity services.
+- **Autonomous Forensic Agent (LangGraph):** Evaluates competing hypotheses (e.g., bot syndicate vs. legitimate multi-user device sharing) using an offline-executable node loop.
+- **Orthogonal 2x2 Decision Matrix:** High Risk / Low Uncertainty (Immediate Action), High Risk / High Uncertainty (Urgent Investigation), Low Risk / Low Uncertainty (Clean Baseline), Low Risk / High Uncertainty (Information Gathering).
+- **Zero Entity Hallucination:** 100% of entity IDs referenced in findings, evidence, and recommendations ground strictly in empirical graph vertices.
+- **Apple-Inspired Interface:** Dark-mode glassmorphic dashboard featuring fluid typography, force-directed graph canvases, SVG risk gauges, and responsive forensic panels.
+
+---
+
+## Architecture
+
+```text
+                    ┌──────────────────────┐
+                    │ Investigation UI     │
+                    │ React + TypeScript   │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ FastAPI Backend      │
+                    │ Investigation API    │
+                    └──────────┬───────────┘
+                               │
+             ┌─────────────────┼──────────────────┐
+             ▼                 ▼                  ▼
+       Graph Layer       Fraud Engine        Case Data
+             │                 │
+             ▼                 ▼
+        TigerGraph       Pattern Detection
+             │                 │
+             └──────────┬──────┘
+                        ▼
+                Agent Investigation
+                   (LangGraph)
+                        │
+                        ▼
+             ┌──────────────────────┐
+             │ Risk + Uncertainty   │
+             └──────────┬───────────┘
+                        ▼
+             ┌──────────────────────┐
+             │ Next Best Action     │
+             └──────────┬───────────┘
+                        ▼
+             Auditable Investigation
+                   Result
+```
+
+*For comprehensive architectural design decisions, see [docs/architecture.md](docs/architecture.md).*
+
+---
+
+## Investigation Flow
+
+A typical end-to-end investigation progresses through discrete, auditable lifecycle stages:
+
+```text
+Case Selected ──► Account Identified ──► Graph Expanded ──► Patterns Detected
+                                                                  │
+Final Unified Result ◄── Actions Generated ◄── Risk & Uncertainty ◄── Agent Evaluation
+```
+
+*For an end-to-end forensic walkthrough of `CASE-1001` / `ACC-RING-001`, see [docs/investigation_flow.md](docs/investigation_flow.md).*
+
+---
+
+## Fraud Detection Patterns
+
+The system features 6 calibrated heuristic detectors:
+
+1. **Shared Device Ring (`SHARED_DEVICE_RING`):** Detects multiple distinct customer accounts bound to the same hardware fingerprint, with elevated severity for rooted emulators.
+2. **Shared IP Cluster (`SHARED_IP_CLUSTER`):** Flags accounts originating authorizations through shared anomalous proxy, VPN, or Tor exit ASNs.
+3. **Transaction Layering (`TRANSACTION_LAYERING`):** Identifies multi-hop money muling chains exhibiting value decay and short temporal deltas.
+4. **Merchant Concentration (`MERCHANT_CONCENTRATION`):** Flags accounts sweeping abnormal percentages of debit volume into high-risk merchant categories (e.g., crypto OTC escrow).
+5. **Transaction Velocity (`TRANSACTION_VELOCITY`):** Catches rapid burst transactions structured within short intervals.
+6. **Multi-Account Ring (`MULTI_ACCOUNT_RING`):** Identifies broader identity syndicates co-located across shared infrastructure.
+
+---
+
+## Risk + Uncertainty
+
+The forensic engine enforces three fundamental technical separations:
+
+- **Evidence Confidence $\ne$ Fraud Probability:** Evidentiary confidence ($0.0 \le c \le 1.0$) denotes how strongly graph evidence corroborates a specific rule, not a statistical likelihood of guilt.
+- **Risk Score $\ne$ Probability:** Composite risk score ($0.0 \le s \le 100.0$) quantifies deterministic heuristic severity and impact weights, not a calibrated Bayesian probability.
+- **Uncertainty $\ne$ Innocence (and Uncertainty $\ne$ Guilt):** Uncertainty reflects telemetry incompleteness or missing evidence. An account with low risk and high uncertainty is uncorroborated, not proven innocent. Conversely, high uncertainty never inflates fraud scores.
+
+---
+
+## Next Best Action
+
+The deterministic Next Best Action (NBA) engine translates forensic findings into prioritized operational steps:
+- **Deduplication:** Guarantees zero duplicate action types in any generated plan.
+- **Scoring Formula:** Prioritizes actions based on uncertainty-reduction potential ($0–30$), risk relevance ($0–30$), and pattern severity.
+- **Proportionality:** Clean baseline accounts receive **zero** intrusive actions (no freezes, no invasive KYC re-verification demands).
+
+---
+
+## Investigation Dashboard
+
+The frontend application provides a modern, high-contrast investigation workspace:
+- **Operations Dashboard (`/`):** Summary KPI metrics, 30-day flagged volume charts, urgent case queues, and risk distribution breakdowns.
+- **Case Directory (`/cases`):** Searchable, filterable case repository with status pills and investigator assignments.
+- **Unified Investigation Workspace (`/investigation/:caseId`):** Central console uniting the interactive topology graph canvas, risk gauges, pattern cards, hypotheses, action lists, and audit timeline.
+- **Graph Explorer (`/graph`):** Free-form force-directed graph exploration with multi-hop node expansion.
+
+---
+
+## Technology Stack
+
+### Frontend
+- **Framework:** React 18 (SPA)
+- **Language:** TypeScript
+- **Tooling:** Vite
+- **Styling:** Tailwind CSS (Apple-inspired dark mode glassmorphism)
+- **Icons:** Lucide React
+
+### Backend & Core
+- **Framework:** FastAPI (Python 3.10+)
+- **Data Validation:** Pydantic v2
+- **Server:** Uvicorn (ASGI)
+
+### Graph Intelligence
+- **Graph Database:** TigerGraph (GSQL queries)
+- **Offline Fallback:** In-memory Python Graph Simulator
+
+### Agentic Reasoning
+- **Agent Framework:** LangGraph (Stateful multi-node cyclic graph)
+
+### Data & Testing
+- **Dataset:** Deterministic synthetic fraud graph (JSON & CSV fixtures)
+- **Test Framework:** Python `unittest` + FastAPI `TestClient`
+- **Evaluation Harness:** Custom offline evaluation suite
 
 ---
 
@@ -8,33 +191,44 @@ An enterprise-ready foundation for AI-assisted fraud investigations. Combines gr
 
 ```text
 fraud-investigation-agent/
-├── frontend/             # React + TypeScript + Vite + Tailwind CSS
-├── backend/              # Python + FastAPI + Pydantic + Uvicorn
-├── graph/                # TigerGraph GSQL schemas & query stubs
-├── data/                 # Sample data files & seed schemas
-├── ml/                   # ML models & feature extraction stubs
-├── docs/                 # System architecture & API specifications
-├── docker/               # Dockerfiles for backend & frontend
-├── .env.example          # Environment variable template
-├── .gitignore            # Git ignore configuration
-├── docker-compose.yml    # Container orchestration for local dev
-└── README.md             # Project overview & running instructions
+├── frontend/             # React + TypeScript + Vite + Tailwind UI
+├── backend/              # FastAPI service, routers, models, and analytical engines
+│   ├── app/
+│   │   ├── api/          # REST endpoints (cases, graph, fraud, agent, risk, recs, investigations)
+│   │   ├── models/       # Pydantic data schemas
+│   │   └── services/     # Graph, fraud detection, risk, recommendation, and investigation services
+│   └── tests/            # Backend unit & integration test discovery bridge
+├── graph/                # TigerGraph GSQL schemas, loading scripts, and query files
+├── data/                 # Synthetic fraud dataset (JSON graph, raw CSVs, data generator)
+├── agent/                # LangGraph forensic investigation agent (planner, nodes, tools)
+├── ml/                   # Machine learning model stubs and feature extraction interfaces
+├── tests/                # Comprehensive test suite
+│   ├── evaluation/       # Phase 9 evaluation suite (determinism, risk, agent, performance)
+│   ├── fixtures/         # Behavioral evaluation fixtures (evaluation_cases.json)
+│   └── run_evaluation.py # Standalone evaluation CLI runner
+├── docs/                 # Architectural specifications, evaluation reports, and workflows
+├── demo/                 # Demo scripts, presentation guides, and scenario documentation
+└── docker/               # Dockerfiles for backend and frontend container deployment
 ```
 
 ---
 
-## Quick Start (Run Locally & Independently)
+## Synthetic Dataset
+
+All evaluations ground against an RFC-compliant, 100% deterministic synthetic dataset generated via `data/generate_fraud_data.py`:
+- **Compliance:** RFC 5737 documentation IP ranges (`192.0.2.x`, `198.51.100.x`, `203.0.113.x`), RFC 2606 reserved domains (`@example.test`), synthetic SSN hashes, and masked card numbers.
+- **Graph Scale:** **133 Vertices** and **147 Edges**.
+- **Scenarios Embedded:** 5 primary graph structures (Normal Baseline, Shared Device Ring, Proxy Cluster, Merchant Collusion, Multi-hop Layering).
+
+---
+
+## Quick Start
 
 ### 1. Prerequisites
 - Python 3.10+
 - Node.js 18+ and npm 9+
 
----
-
-### 2. Backend Setup & Run
-
-The backend runs independently on port `8000`.
-
+### 2. Backend Setup
 ```bash
 cd backend
 
@@ -45,140 +239,180 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Start FastAPI development server
+# Start FastAPI server
 uvicorn app.main:app --reload --port 8000
 ```
+- API Health Check: [http://localhost:8000/health](http://localhost:8000/health)
+- Swagger API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-- **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
-- **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **List Cases API**: [http://localhost:8000/api/cases](http://localhost:8000/api/cases)
-- **Case Details API**: [http://localhost:8000/api/cases/CASE-1001](http://localhost:8000/api/cases/CASE-1001)
-- **Trigger Investigation (Phase 1)**: `POST http://localhost:8000/api/investigations`
-- **Run Unified Investigation (Phase 8)**: `POST http://localhost:8000/api/investigations/run`
-- **Get Investigation by ID (Phase 8)**: `GET http://localhost:8000/api/investigations/{investigation_id}`
-
-#### Example Unified Run:
-```bash
-curl -X POST http://127.0.0.1:8000/api/investigations/run \
-  -H "Content-Type: application/json" \
-  -d '{"case_id":"CASE-1001","target_account_id":"ACC-RING-001"}'
-```
-
----
-
-### 3. Frontend Setup & Run
-
-The frontend runs independently on port `5173`.
-
+### 3. Frontend Setup
 ```bash
 cd frontend
 
 # Install dependencies
 npm install
 
-# Start Vite dev server
+# Start Vite development server
 npm run dev
 ```
-
-- Access application at: [http://localhost:5173](http://localhost:5173)
-
-#### Core Pages:
-1. **Dashboard** (`/`): Overview metrics (Total Flagged Volume, Critical Alerts, Active Cases), risk distribution, and urgent alert feeds.
-2. **Cases** (`/cases`): Searchable and filterable case directory with risk scores and direct investigation links.
-3. **Investigation** (`/investigation` & `/investigation/:caseId`): Comprehensive Apple-inspired investigation workspace driven by the Phase 8 unified orchestrator with graph topology, fraud pattern scorecards, hypotheses, risk & uncertainty gauges, Next Best Actions, and immutable audit timeline.
-4. **Graph Explorer** (`/graph`): Visual relationship explorer modeling customers, accounts, cards, devices, and IP addresses.
+- Access web application: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-### 4. Docker Deployment (Optional)
+## Running the Tests
 
-To start both backend and frontend using Docker Compose:
+To run the complete automated test suite and production build verification:
 
 ```bash
-docker-compose up --build
-```
+# Comprehensive script: data generator + 91 backend tests + frontend build
+./tests/run_tests.sh
 
----
-
-## Key API Endpoints
-
-| Method | Endpoint | Description | Phase |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/health` | Service health status | Phase 1 |
-| `GET` | `/api/cases` | List fraud cases (supports `status`, `risk_level`, `search`) | Phase 1 |
-| `GET` | `/api/cases/{case_id}` | Detailed case record with entities & transactions | Phase 1 |
-| `POST` | `/api/investigations` | Trigger / queue an automated fraud investigation | Phase 1 |
-| `GET` | `/api/graph/neighborhood/{id}` | TigerGraph / simulator 2-hop entity neighborhood | Phase 2 |
-| `GET` | `/api/fraud/patterns/{account_id}` | 6 calibrated fraud pattern detectors | Phase 3 |
-| `POST` | `/api/agent/investigate` | Autonomous LangGraph forensic investigation agent | Phase 4 |
-| `GET` | `/api/risk/{account_id}` | Deterministic risk & uncertainty score, quadrant matrix | Phase 5 |
-| `GET` | `/api/recommendations/{account_id}` | Prioritized, explainable Next Best Actions | Phase 6 |
-| `POST` | `/api/investigations/run` | **Unified End-to-End Investigation Orchestrator** | **Phase 8** |
-| `GET` | `/api/investigations/{id}` | **Retrieve Unified Investigation Result** | **Phase 8** |
-
----
-
-## Roadmap & Status
-
-- **Phase 1 (Completed)**: Foundational architecture, FastAPI backend, React/Vite/Tailwind frontend, placeholders for TigerGraph, ML, Docker.
-- **Phase 2 (Completed)**: TigerGraph queries, schema definitions, and offline in-memory graph simulator.
-- **Phase 3 (Completed)**: 6 fraud pattern detection engines, calibrated confidence scoring, and evidence builder.
-- **Phase 4 (Completed)**: Stateful LangGraph autonomous forensic investigation agent.
-- **Phase 5 (Completed)**: Explainable, deterministic risk & uncertainty engine with decision quadrant matrix.
-- **Phase 6 (Completed)**: Next Best Action (NBA) recommendation engine with provenance and action prioritization.
-- **Phase 7 (Completed)**: Apple-inspired investigation dashboard UI redesign with interactive graph visualization.
-- **Phase 8 (Completed)**: Full pipeline integration, unified investigation orchestrator, typed unified result schema, and comprehensive integration testing.
-- **Phase 9 (Completed)**: Rigorous evaluation layer, 7 synthetic scenario coverage, multi-run determinism verification, risk/uncertainty independence, agent grounding, evidence traceability, API robustness, and empirical performance baselines.
-
----
-
-## Testing & Evaluation (Phase 9)
-
-Phase 9 introduces an offline-executable, rigorous evaluation harness evaluating correctness, determinism, scenario coverage, agent grounding, risk/uncertainty separation, recommendation alignment, API robustness, and performance latency baselines.
-
-### 1. Running the Full Evaluation Suite
-
-```bash
-# Run standalone evaluation runner (outputs console report + data/evaluation_results.json)
+# Run standalone Phase 9 evaluation harness
 backend/.venv/bin/python tests/run_evaluation.py
 
-# Run all unit, integration, and evaluation tests
-./tests/run_tests.sh
+# Run backend unit tests directly
+cd backend && .venv/bin/python -m unittest discover -s tests -p "test_*.py"
+
+# Verify frontend production build
+cd frontend && npm run build
 ```
 
-### 2. Evaluation Dimensions & Results
+---
 
-| Evaluation Battery | Module | Status | Core Assertions |
-|:---|:---|:---:|:---|
-| **Scenario Coverage** | `tests/evaluation/test_scenarios.py` | **PASS** | 100% coverage across 7 scenarios (Normal, Device Ring, Proxy IP, Collusion, Layering, Velocity, Multi-Account). |
-| **Determinism** | `tests/evaluation/test_determinism.py` | **PASS** | `Run 1 == Run 2 == Run 3` across risk scores, tiers, findings, entities, actions, and orderings. |
-| **Risk Engine** | `tests/evaluation/test_risk_evaluation.py` | **PASS** | Bounded scores [0, 100], qualitative tier ordering, and orthogonal separation between risk and uncertainty. |
-| **Recommendations** | `tests/evaluation/test_recommendation_evaluation.py` | **PASS** | Evidence-to-action alignment, zero duplicate actions, bounded priorities, clean baseline proportionality. |
-| **Agent Grounding** | `tests/evaluation/test_agent_evaluation.py` | **PASS** | Zero fabricated entity IDs (133/133 grounded), unbroken traceability chain, no invented findings on clean accounts. |
-| **API Robustness** | `tests/evaluation/test_api_robustness.py` | **PASS** | 422 for schema validation, 404 for unknown resources, zero stack trace or internal path leakage. |
-| **Performance** | `tests/evaluation/test_performance.py` | **PASS** | Local simulator evaluation established a baseline of approximately 2.5–3.6 ms for the tested synthetic scenarios. |
+## Evaluation Results
 
-### 3. Key Architectural Distinctions
+The system was evaluated using the Phase 9 offline evaluation battery:
 
-The forensic engine enforces explicit conceptual boundaries across all analytical layers:
-- **Evidence Confidence ≠ Fraud Probability:** Evidentiary confidence ($0.0 \le c \le 1.0$) measures how strongly concrete graph telemetry supports a detected pattern rule, entirely distinct from a statistical probability of criminal fraud.
-- **Risk Score ≠ Probability:** The composite risk score ($0.0 \le s \le 100.0$) quantifies deterministic heuristic rule severity and impact weights, not a calibrated Bayesian fraud probability.
-- **Uncertainty ≠ Innocence (and Uncertainty ≠ Guilt):** Uncertainty reflects telemetry incompleteness or missing evidence. An account with low risk and high uncertainty is uncorroborated, not proven innocent. High uncertainty never inflates fraud scores.
+```text
+======================================================================
+Evaluation Summary
+==================
+Scenario Coverage: PASS (7/7 synthetic scenarios evaluated)
+Determinism: PASS (Run 1 == Run 2 == Run 3 across scores and orderings)
+Risk Evaluation: PASS (Bounded [0, 100], qualitative invariants held)
+Recommendation Evaluation: PASS (Evidence aligned, 0 duplicates, bounded)
+Agent Grounding: PASS (133/133 entities verified, 0 hallucinations)
+API Robustness: PASS (422 validation, 404 unknown, 0 data leakage)
+Performance Baseline: PASS (2.5–3.6 ms local simulator baseline)
 
-### 4. Detailed Reports & Artifacts
+Overall: PASS (91/91 automated tests passing)
+======================================================================
+```
 
-- **Executive Evaluation Report**: [`docs/evaluation_report.md`](file:///Users/nikhilchhetri/Fraud%20/fraud-investigation-agent/docs/evaluation_report.md)
-- **Machine-Readable Evaluation Results**: [`data/evaluation_results.json`](file:///Users/nikhilchhetri/Fraud%20/fraud-investigation-agent/data/evaluation_results.json)
-- **Scenario Fixtures**: [`tests/fixtures/evaluation_cases.json`](file:///Users/nikhilchhetri/Fraud%20/fraud-investigation-agent/tests/fixtures/evaluation_cases.json)
+*See [docs/evaluation_report.md](docs/evaluation_report.md) for full metrics and breakdown.*
 
-### 5. Explicit Architectural Limitations
+---
 
-- **Local Simulator Baseline $\ne$ Production Latency:** Local simulator evaluation established a baseline of approximately 2.5–3.6 ms for the tested synthetic scenarios. TigerGraph cluster network serialization, connection pooling, and remote LLM reasoning in production would change latency substantially.
-- Evaluated against RFC-compliant **synthetic data** and local graph simulator.
-- **Rule severity $\ne$ statistical fraud probability**: Heuristic risk scores reflect rule criteria, not calibrated Bayesian probabilities.
-- **Confidence is evidentiary support**: Measures completeness of corroborating graph facts, not statistical likelihood of guilt.
-- **Rule consistency $\ne$ real-world optimality**: Validates engine adherence to forensic rules rather than global jurisdictional optimality.
-- **No production accuracy claims**: Decision-support research prototype without claims of production false positive / false negative rates.
+## API Overview
 
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Service health status |
+| `GET` | `/api/cases` | List and filter fraud cases |
+| `GET` | `/api/cases/{case_id}` | Case profile with transactions and assigned investigator |
+| `GET` | `/api/graph/neighborhood/{id}` | Sub-graph 2-hop neighborhood expansion |
+| `GET` | `/api/fraud/patterns/{account_id}` | 6 calibrated fraud pattern detector evaluations |
+| `POST` | `/api/agent/investigate` | Autonomous LangGraph forensic investigation agent |
+| `GET` | `/api/risk/{account_id}` | Deterministic risk & uncertainty score, quadrant matrix |
+| `GET` | `/api/recommendations/{account_id}` | Prioritized, explainable Next Best Actions |
+| `POST` | `/api/investigations/run` | **Unified End-to-End Investigation Orchestrator** |
+| `GET` | `/api/investigations/{id}` | **Retrieve Unified Investigation Result** |
 
+*For complete endpoint schemas and example payloads, see [docs/api_spec.md](docs/api_spec.md).*
 
+---
+
+## Example Investigation
+
+Trigger a unified investigation via `cURL`:
+
+```bash
+curl -X POST http://localhost:8000/api/investigations/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "case_id": "CASE-1001",
+    "target_account_id": "ACC-RING-001",
+    "analyst_notes": "Urgent review of high-velocity card testing ring."
+  }'
+```
+
+Response snippet:
+```json
+{
+  "investigation_id": "INV-1001-C4A19B",
+  "status": "COMPLETED",
+  "summary": "Unified investigation completed for account ACC-RING-001 (Case CASE-1001)...",
+  "risk_assessment": {
+    "risk_score": 100.0,
+    "risk_tier": "CRITICAL",
+    "uncertainty": {
+      "uncertainty_score": 30.0,
+      "uncertainty_tier": "MEDIUM",
+      "quadrant": "HIGH_RISK_LOW_UNCERTAINTY"
+    }
+  },
+  "action_plan": {
+    "recommended_actions": [
+      {
+        "action_id": "ACT-REQ-DEV-001",
+        "action_type": "REQUEST_DEVICE_TELEMETRY",
+        "priority": "CRITICAL",
+        "priority_score": 88.0
+      }
+    ]
+  }
+}
+```
+
+---
+
+## Docker Deployment
+
+To launch backend and frontend services via Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+> [!NOTE]
+> **Docker Scope:** The `docker-compose.yml` file provisions the FastAPI backend and the React production build (served via Nginx). The TigerGraph database itself is not containerized in Docker Compose; the system seamlessly uses the included in-memory Python Graph Simulator for all graph intelligence operations.
+
+---
+
+## Security & Privacy
+
+- **No Real Customer Data:** All names, SSN hashes, card numbers, IP addresses, emails, and transaction amounts are synthetically generated under RFC compliance standards.
+- **Safe Environment Configuration:** Environment variables are managed via `.env.example`. Actual `.env` files and secrets are strictly ignored by `.gitignore`.
+- **API Error Sanitization:** Verified by automated robustness tests—API error payloads never leak internal stack traces, local filesystem paths, environment variables, or Python exception objects.
+
+---
+
+## Limitations
+
+- **Local Simulator Baseline $\ne$ Production Latency:** Local simulator evaluation established a baseline of approximately **2.5–3.6 ms** for the tested synthetic scenarios. Production deployments incorporating a live distributed TigerGraph cluster, network serialization, database connection pooling, and remote LLM reasoning would change latency substantially.
+- **Synthetic Data:** The dataset is synthetic and does not capture the full chaotic entropy of real-world banking transaction feeds.
+- **Simulator Fallback:** Tests evaluate the in-memory Python simulator in the absence of a live TigerGraph cluster.
+- **Rule Severity $\ne$ Statistical Fraud Probabilities:** Heuristic risk scores reflect deterministic rule evaluation, not calibrated Bayesian probabilities of criminal fraud.
+- **Confidence is Evidentiary Support:** Measures completeness of corroborating graph facts, not statistical likelihood of guilt.
+- **Advisory Recommendations:** Action plans provide decision-support guidance for human analysts and do not automatically execute adverse actions without human oversight.
+
+---
+
+## Roadmap
+
+- **Phase 1 — Foundation Architecture & Scaffolding** ✅
+- **Phase 2 — TigerGraph Queries & Schema Modeling** ✅
+- **Phase 3 — Deterministic Fraud Pattern Detection** ✅
+- **Phase 4 — Autonomous Agentic Investigation (LangGraph)** ✅
+- **Phase 5 — Deterministic Risk & Uncertainty Engine** ✅
+- **Phase 6 — Next Best Action (NBA) Recommendation Engine** ✅
+- **Phase 7 — Apple-Inspired Investigation Dashboard UI** ✅
+- **Phase 8 — Full Pipeline Integration & Unified Orchestrator** ✅
+- **Phase 9 — Rigorous Evaluation & Benchmarking Battery** ✅
+- **Phase 10 — Demo & Documentation Portfolio Package** ✅
+
+---
+
+## License
+
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
