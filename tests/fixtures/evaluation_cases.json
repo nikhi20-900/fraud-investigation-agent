@@ -1,0 +1,168 @@
+{
+  "description": "Evaluation scenarios and behavioral assertions for the Agentic Fraud Investigation Agent (Phase 9)",
+  "version": "1.0.0",
+  "dataset_ground_truth": {
+    "file": "data/synthetic_fraud_graph.json",
+    "total_vertices": 133,
+    "total_edges": 147,
+    "scenarios_count": 5
+  },
+  "scenarios": [
+    {
+      "scenario": "NORMAL",
+      "name": "Normal Baseline Customer Behavior",
+      "account_id": "ACC-NORM-001",
+      "case_id": "CASE-1002",
+      "description": "Legitimate retail checking account with 1-to-1 residential IP, clean device, and everyday merchant transactions.",
+      "expected_patterns": [],
+      "forbidden_patterns": [
+        "SHARED_DEVICE_RING",
+        "SHARED_IP_CLUSTER",
+        "TRANSACTION_LAYERING",
+        "MERCHANT_CONCENTRATION",
+        "TRANSACTION_VELOCITY",
+        "MULTI_ACCOUNT_RING"
+      ],
+      "expected_min_risk_tier": "LOW",
+      "expected_max_risk_tier": "LOW",
+      "expected_uncertainty_tier": "LOW",
+      "expected_required_evidence": [],
+      "expected_critical_findings": 0,
+      "forbidden_actions": [
+        "INVESTIGATE_SHARED_DEVICE",
+        "INVESTIGATE_SHARED_IP",
+        "TRACE_TRANSACTION_CHAIN",
+        "REVIEW_MERCHANT_RELATIONSHIP"
+      ]
+    },
+    {
+      "scenario": "SHARED_DEVICE_RING",
+      "name": "Rooted Emulator Shared Device Ring",
+      "account_id": "ACC-RING-001",
+      "case_id": "CASE-1001",
+      "description": "Bot farm ring of 4 accounts sharing a single rooted emulator device (DEV-ROOT-EMU-77) executing burst withdrawals.",
+      "expected_patterns": [
+        "SHARED_DEVICE_RING",
+        "MULTI_ACCOUNT_RING"
+      ],
+      "forbidden_patterns": [],
+      "expected_min_risk_tier": "HIGH",
+      "expected_max_risk_tier": "CRITICAL",
+      "expected_required_evidence": [
+        "device",
+        "emulator"
+      ],
+      "expected_recommended_actions": [
+        "INVESTIGATE_SHARED_DEVICE",
+        "REQUEST_DEVICE_TELEMETRY"
+      ],
+      "forbidden_actions": []
+    },
+    {
+      "scenario": "SHARED_IP_CLUSTER",
+      "name": "Anomalous Shared Proxy IP Cluster",
+      "account_id": "ACC-PROXY-001",
+      "case_id": "CASE-1002",
+      "description": "Cluster of 3 accounts routing transactions through an anomalous proxy/VPN IP node (IP-ANOMALY-PROXY-88).",
+      "expected_patterns": [
+        "SHARED_IP_CLUSTER",
+        "MULTI_ACCOUNT_RING"
+      ],
+      "forbidden_patterns": [],
+      "expected_min_risk_tier": "MEDIUM",
+      "expected_max_risk_tier": "HIGH",
+      "expected_required_evidence": [
+        "ip",
+        "proxy"
+      ],
+      "expected_recommended_actions": [
+        "INVESTIGATE_SHARED_IP"
+      ],
+      "forbidden_actions": []
+    },
+    {
+      "scenario": "MERCHANT_CONCENTRATION",
+      "name": "Merchant Collusion & Bust-out Structuring",
+      "account_id": "ACC-COLLUDE-001",
+      "case_id": "CASE-1004",
+      "description": "High-volume repetitive wire transfers structured just below reporting thresholds to high-risk OTC merchant MERCH-CRYPTO-COLLUSION-99.",
+      "expected_patterns": [
+        "MERCHANT_CONCENTRATION"
+      ],
+      "forbidden_patterns": [],
+      "expected_min_risk_tier": "HIGH",
+      "expected_max_risk_tier": "CRITICAL",
+      "expected_required_evidence": [
+        "merchant",
+        "concentration"
+      ],
+      "expected_recommended_actions": [
+        "REVIEW_MERCHANT_RELATIONSHIP"
+      ],
+      "forbidden_actions": []
+    },
+    {
+      "scenario": "TRANSACTION_LAYERING",
+      "name": "Multi-Hop Money Muling Chain",
+      "account_id": "ACC-CHAIN-SOURCE-501",
+      "case_id": "CASE-1005",
+      "description": "Rapid serial layering chain moving funds through multiple intermediate mule accounts into offshore liquidity services.",
+      "expected_patterns": [
+        "TRANSACTION_LAYERING"
+      ],
+      "forbidden_patterns": [],
+      "expected_min_risk_tier": "HIGH",
+      "expected_max_risk_tier": "CRITICAL",
+      "expected_required_evidence": [
+        "layering",
+        "hop"
+      ],
+      "expected_recommended_actions": [
+        "TRACE_TRANSACTION_CHAIN",
+        "INVESTIGATE_COUNTERPARTY"
+      ],
+      "forbidden_actions": []
+    },
+    {
+      "scenario": "TRANSACTION_VELOCITY",
+      "name": "Rapid Burst Transaction Velocity",
+      "account_id": "ACC-RING-001",
+      "case_id": "CASE-1001",
+      "description": "Rapid succession of high-dollar transactions within minutes triggering velocity burst rules.",
+      "expected_patterns": [
+        "TRANSACTION_VELOCITY"
+      ],
+      "forbidden_patterns": [],
+      "expected_min_risk_tier": "HIGH",
+      "expected_max_risk_tier": "CRITICAL",
+      "expected_required_evidence": [
+        "velocity",
+        "burst"
+      ],
+      "expected_recommended_actions": [
+        "REVIEW_VELOCITY_ACTIVITY"
+      ],
+      "forbidden_actions": []
+    },
+    {
+      "scenario": "MULTI_ACCOUNT_RING",
+      "name": "Multi-Account Entity Linkage Ring",
+      "account_id": "ACC-RING-001",
+      "case_id": "CASE-1001",
+      "description": "Syndicate of multiple accounts tied together through common infrastructure identifiers.",
+      "expected_patterns": [
+        "MULTI_ACCOUNT_RING"
+      ],
+      "forbidden_patterns": [],
+      "expected_min_risk_tier": "MEDIUM",
+      "expected_max_risk_tier": "CRITICAL",
+      "expected_required_evidence": [
+        "accounts"
+      ],
+      "expected_recommended_actions": [
+        "REVIEW_ACCOUNT_CONNECTIONS"
+      ],
+      "forbidden_actions": []
+    }
+  ]
+}
