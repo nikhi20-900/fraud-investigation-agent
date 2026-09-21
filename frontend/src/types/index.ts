@@ -274,3 +274,37 @@ export interface ActionPlan {
   explanation: string;
   generated_at: string;
 }
+
+// --- Phase 8: Full Unified Investigation ---
+export type InvestigationStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export interface UnifiedInvestigationRequest {
+  case_id: string;
+  target_account_id: string;
+  analyst_notes?: string;
+}
+
+export interface UnifiedInvestigationResult {
+  investigation_id: string;
+  case_id: string;
+  target_account_id: string;
+  status: InvestigationStatus;
+  summary: string;
+  graph_evidence: {
+    nodes?: GraphEntity[];
+    edges?: GraphRelationship[];
+    [key: string]: any;
+  };
+  fraud_findings: FraudFinding[];
+  supporting_evidence: EvidenceItem[];
+  conflicting_evidence: EvidenceItem[];
+  hypotheses: Hypothesis[];
+  uncertainties: string[];
+  risk_assessment: RiskAssessment | null;
+  action_plan: ActionPlan | null;
+  audit_trail: AuditEvent[];
+  started_at: string;
+  completed_at?: string;
+  error?: string;
+}
+

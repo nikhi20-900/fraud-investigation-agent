@@ -6,6 +6,8 @@ import type {
   HealthResponse,
   RiskAssessment,
   ActionPlan,
+  UnifiedInvestigationRequest,
+  UnifiedInvestigationResult,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -444,4 +446,36 @@ export async function analyzeRecommendations(payload: {
   }
   return null;
 }
+
+// ==============================================================================
+// PHASE 8: UNIFIED INVESTIGATION CLIENT API
+// ==============================================================================
+
+export async function runUnifiedInvestigation(
+  payload: UnifiedInvestigationRequest
+): Promise<UnifiedInvestigationResult> {
+  const res = await fetch(`${API_BASE_URL}/api/investigations/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (res.ok) {
+    return await res.json();
+  }
+  const errData = await res.json().catch(() => ({}));
+  throw new Error(errData.detail || `Investigation request failed with status ${res.status}`);
+}
+
+export async function fetchUnifiedInvestigation(
+  investigationId: string
+): Promise<UnifiedInvestigationResult | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/investigations/${investigationId}`);
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.warn(`Error fetching unified investigation ${investigationId}`, err);
+  }
+  return null;
+}
+
 

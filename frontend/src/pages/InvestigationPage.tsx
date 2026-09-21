@@ -11,11 +11,7 @@ import {
 import {
   fetchCases,
   fetchCaseById,
-  fetchAccountNeighborhood,
-  fetchAccountFraudPatterns,
-  fetchAccountRisk,
-  fetchAccountRecommendations,
-  triggerAgentInvestigation,
+  runUnifiedInvestigation,
 } from '../api/client';
 import type {
   CaseDetail,
@@ -28,6 +24,7 @@ import type {
   AuditEvent,
   GraphEntity,
   GraphRelationship,
+  UnifiedInvestigationResult,
 } from '../types';
 
 import { RiskPanel } from '../components/Investigation/RiskPanel';
@@ -50,12 +47,15 @@ export const InvestigationPage: React.FC = () => {
   // Target Account
   const [selectedAccountId, setSelectedAccountId] = useState<string>(targetAccountParam || 'ACC-RING-001');
 
+  // Single Source of Truth: Unified Investigation Result
+  const [investigationResult, setInvestigationResult] = useState<UnifiedInvestigationResult | null>(null);
+
   // Graph Data
   const [graphNodes, setGraphNodes] = useState<GraphEntity[]>([]);
   const [graphEdges, setGraphEdges] = useState<GraphRelationship[]>([]);
   const [selectedGraphNodeId, setSelectedGraphNodeId] = useState<string | null>(null);
 
-  // Forensics & Engines Data
+  // Forensics & Engines Data (Mapped from Unified Result)
   const [findings, setFindings] = useState<FraudFinding[]>([]);
   const [evidenceItems, setEvidenceItems] = useState<EvidenceItem[]>([]);
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
@@ -99,7 +99,6 @@ export const InvestigationPage: React.FC = () => {
           if (accNode) {
             setSelectedAccountId(accNode.id);
           } else if (c.customer_id) {
-            // Check default mapping
             setSelectedAccountId('ACC-RING-001');
           }
         }
@@ -107,91 +106,79 @@ export const InvestigationPage: React.FC = () => {
     });
   }, [caseIdParam, targetAccountParam]);
 
-  // 3. Fetch all telemetry & run assessment for selectedAccountId
-  const loadAccountTelemetry = useCallback(
-    async (accountId: string, caseId?: string) => {
+  // Apply unified investigation result as the single source of truth
+  const applyUnifiedResult = useCallback((result: UnifiedInvestigationResult) => {
+    setInvestigationResult(result);
+    setInvestigationStatus(result.status || 'COMPLETED');
+    setAgentSummary(result.summary || '');
+    setGraphNodes(result.graph_evidence?.nodes || []);
+    setGraphEdges(result.graph_evidence?.edges || []);
+    setFindings(result.fraud_findings || []);
+
+    // Combine evidence items from supporting and conflicting lists
+    const evs: EvidenceItem[] = [];
+    if (result.supporting_evidence && result.supporting_evidence.length > 0) {
+      evs.push(...(result.supporting_evidence as EvidenceItem[]));
+    }
+    if (result.conflicting_evidence && result.conflicting_evidence.length > 0) {
+      evs.push(...(result.conflicting_evidence as EvidenceItem[]));
+    }
+    // Fallback extraction from pattern findings if agent evidence array is empty
+    if (evs.length === 0 && result.fraud_findings) {
+      result.fraud_findings.forEach((f) => {
+        if (f.evidence) {
+          f.evidence.forEach((ev) => {
+            evs.push({
+              rule: ev.rule,
+              detail: ev.detail,
+              pattern: f.pattern,
+              severity: f.severity,
+              confidence: f.confidence,
+              metrics: ev.metrics,
+            });
+          });
+        }
+      });
+    }
+    setEvidenceItems(evs);
+    setHypotheses(result.hypotheses || []);
+    setUncertainties(result.uncertainties || result.risk_assessment?.uncertainty?.blind_spots || []);
+    setRiskAssessment(result.risk_assessment || null);
+    setActionPlan(result.action_plan || null);
+    setAuditTrail(result.audit_trail || []);
+  }, []);
+
+  // 3. Load unified investigation for selectedAccountId
+  const loadInvestigation = useCallback(
+    async (accountId: string, caseId: string) => {
       if (!accountId) return;
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
-        // Parallel fetch of Graph, Patterns, Risk, NBA
-        const [graphRes, patternRes, riskRes, actionRes] = await Promise.allSettled([
-          fetchAccountNeighborhood(accountId, 2),
-          fetchAccountFraudPatterns(accountId),
-          fetchAccountRisk(accountId, caseId),
-          fetchAccountRecommendations(accountId, caseId),
-        ]);
-
-        // Process Graph
-        if (graphRes.status === 'fulfilled' && graphRes.value) {
-          setGraphNodes(graphRes.value.nodes || []);
-          setGraphEdges(graphRes.value.edges || []);
-        } else {
-          setGraphNodes([]);
-          setGraphEdges([]);
+        const res = await runUnifiedInvestigation({
+          case_id: caseId,
+          target_account_id: accountId,
+        });
+        if (res) {
+          applyUnifiedResult(res);
         }
-
-        // Process Patterns & Evidence
-        if (patternRes.status === 'fulfilled' && patternRes.value) {
-          const fList: FraudFinding[] = patternRes.value.findings || [];
-          setFindings(fList);
-
-          // Extract flat evidence items from patterns
-          const evs: EvidenceItem[] = [];
-          fList.forEach((f) => {
-            if (f.evidence) {
-              f.evidence.forEach((ev) => {
-                evs.push({
-                  rule: ev.rule,
-                  detail: ev.detail,
-                  pattern: f.pattern,
-                  severity: f.severity,
-                  confidence: f.confidence,
-                  metrics: ev.metrics,
-                });
-              });
-            }
-          });
-          setEvidenceItems(evs);
-        } else {
-          setFindings([]);
-          setEvidenceItems([]);
-        }
-
-        // Process Risk
-        if (riskRes.status === 'fulfilled' && riskRes.value) {
-          setRiskAssessment(riskRes.value);
-          if (riskRes.value.uncertainty?.blind_spots) {
-            setUncertainties(riskRes.value.uncertainty.blind_spots);
-          }
-        } else {
-          setRiskAssessment(null);
-        }
-
-        // Process Recommendations
-        if (actionRes.status === 'fulfilled' && actionRes.value) {
-          setActionPlan(actionRes.value);
-        } else {
-          setActionPlan(null);
-        }
-
-        setInvestigationStatus('READY');
       } catch (err: any) {
-        console.error('Failed loading investigation data', err);
-        setErrorMessage('Failed to load investigation telemetry for account.');
+        console.warn('Failed loading unified investigation', err);
+        setErrorMessage(err.message || 'Failed to load investigation telemetry.');
+        setInvestigationStatus('FAILED');
       } finally {
         setIsLoading(false);
       }
     },
-    []
+    [applyUnifiedResult]
   );
 
   useEffect(() => {
     if (selectedAccountId) {
-      loadAccountTelemetry(selectedAccountId, caseIdParam);
+      loadInvestigation(selectedAccountId, caseIdParam);
     }
-  }, [selectedAccountId, caseIdParam, loadAccountTelemetry]);
+  }, [selectedAccountId, caseIdParam, loadInvestigation]);
 
   // Handle Case Switcher
   const handleSelectCase = (newCaseId: string) => {
@@ -205,49 +192,25 @@ export const InvestigationPage: React.FC = () => {
     setSearchParams({ caseId: caseIdParam, accountId: newAccountId });
   };
 
-  // Handle Agent Investigation Trigger
-  const handleRunAgentInvestigation = async () => {
+  // Handle Unified Investigation Trigger
+  const handleRunInvestigation = async () => {
     setIsInvestigating(true);
     setInvestigationStatus('RUNNING');
     setErrorMessage(null);
 
     try {
-      const report = await triggerAgentInvestigation({
+      const result = await runUnifiedInvestigation({
         case_id: caseIdParam,
-        account_id: selectedAccountId,
-        analyst_notes: `Forensic audit initiated via Investigation Dashboard for ${selectedAccountId}`,
+        target_account_id: selectedAccountId,
+        analyst_notes: `Manual forensic audit triggered via Investigation Dashboard for ${selectedAccountId}`,
       });
 
-      if (report) {
-        setInvestigationStatus(report.status || 'COMPLETED');
-        setAgentSummary(report.summary || '');
-        if (report.findings && report.findings.length > 0) {
-          setFindings(report.findings);
-        }
-        if (report.evidence && report.evidence.length > 0) {
-          setEvidenceItems(report.evidence as EvidenceItem[]);
-        }
-        if (report.hypotheses && report.hypotheses.length > 0) {
-          setHypotheses(report.hypotheses as Hypothesis[]);
-        }
-        if (report.uncertainties && report.uncertainties.length > 0) {
-          setUncertainties(report.uncertainties);
-        }
-        if (report.audit_trail && report.audit_trail.length > 0) {
-          setAuditTrail(report.audit_trail);
-        }
-
-        // Re-fetch updated Risk and Recommendations with phase 4 context
-        const [updatedRisk, updatedActions] = await Promise.all([
-          fetchAccountRisk(selectedAccountId, caseIdParam),
-          fetchAccountRecommendations(selectedAccountId, caseIdParam),
-        ]);
-        if (updatedRisk) setRiskAssessment(updatedRisk);
-        if (updatedActions) setActionPlan(updatedActions);
+      if (result) {
+        applyUnifiedResult(result);
       }
     } catch (err: any) {
       console.error('Investigation failed', err);
-      setErrorMessage('Agent investigation failed to complete.');
+      setErrorMessage(err.message || 'Investigation failed to complete.');
       setInvestigationStatus('FAILED');
     } finally {
       setIsInvestigating(false);
@@ -337,7 +300,7 @@ export const InvestigationPage: React.FC = () => {
             </Link>
 
             <button
-              onClick={() => loadAccountTelemetry(selectedAccountId, caseIdParam)}
+              onClick={() => loadInvestigation(selectedAccountId, caseIdParam)}
               disabled={isLoading || isInvestigating}
               className="p-2 rounded-xl bg-white hover:bg-gray-50 text-gray-600 border border-gray-200/80 shadow-xs transition-colors disabled:opacity-50"
               title="Refresh Telemetry"
@@ -346,19 +309,19 @@ export const InvestigationPage: React.FC = () => {
             </button>
 
             <button
-              onClick={handleRunAgentInvestigation}
+              onClick={handleRunInvestigation}
               disabled={isInvestigating || isLoading}
               className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-2 disabled:cursor-not-allowed"
             >
               {isInvestigating ? (
                 <>
                   <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Analyzing Forensic Evidence...</span>
+                  <span>Running Investigation...</span>
                 </>
               ) : (
                 <>
                   <Play className="w-3.5 h-3.5 fill-current text-white" />
-                  <span>Execute Forensic Investigation</span>
+                  <span>Run Investigation</span>
                 </>
               )}
             </button>
@@ -478,23 +441,30 @@ export const InvestigationPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Agent Synthesis Banner (if run) */}
-      {agentSummary && (
+      {/* 3. Integrated Investigation Synthesis Banner */}
+      {(agentSummary || investigationResult) && (
         <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200/60 shadow-xs space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-blue-900">
               <Sparkles className="w-4 h-4 text-blue-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-blue-950">
-                Agent Reasoning Synthesis
+                Integrated Forensic Synthesis
               </span>
+              {investigationResult?.investigation_id && (
+                <span className="text-[11px] font-mono text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md border border-blue-200">
+                  {investigationResult.investigation_id}
+                </span>
+              )}
             </div>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
               Status: {investigationStatus}
             </span>
           </div>
-          <p className="text-xs text-blue-950 leading-relaxed bg-white/80 p-3.5 rounded-xl border border-blue-100">
-            {agentSummary}
-          </p>
+          {agentSummary && (
+            <p className="text-xs text-blue-950 leading-relaxed bg-white/80 p-3.5 rounded-xl border border-blue-100">
+              {agentSummary}
+            </p>
+          )}
         </div>
       )}
 
