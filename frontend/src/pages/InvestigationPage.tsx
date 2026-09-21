@@ -44,8 +44,25 @@ export const InvestigationPage: React.FC = () => {
   const [allCases, setAllCases] = useState<CaseSummary[]>([]);
   const [currentCase, setCurrentCase] = useState<CaseDetail | null>(null);
 
+  const CASE_DEFAULT_ACCOUNTS: Record<string, string> = {
+    'CASE-1001': 'ACC-RING-001',
+    'CASE-1002': 'ACC-NORM-001',
+    'CASE-1003': 'ACC-PROXY-001',
+    'CASE-1004': 'ACC-COLLUDE-001',
+    'CASE-1005': 'ACC-CHAIN-SOURCE-501',
+  };
+
+  const resolveAccountId = (accId?: string | null, caseId?: string | null): string => {
+    if (accId === 'ACC-4091') return 'ACC-RING-001';
+    if (accId && accId.trim()) return accId.trim();
+    if (caseId && CASE_DEFAULT_ACCOUNTS[caseId.toUpperCase()]) {
+      return CASE_DEFAULT_ACCOUNTS[caseId.toUpperCase()];
+    }
+    return 'ACC-RING-001';
+  };
+
   // Target Account
-  const [selectedAccountId, setSelectedAccountId] = useState<string>(targetAccountParam || 'ACC-RING-001');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(resolveAccountId(targetAccountParam, caseIdParam));
 
   // Single Source of Truth: Unified Investigation Result
   const [investigationResult, setInvestigationResult] = useState<UnifiedInvestigationResult | null>(null);
@@ -76,6 +93,7 @@ export const InvestigationPage: React.FC = () => {
     { id: 'ACC-RING-001', label: 'ACC-RING-001 (Shared Device Ring)' },
     { id: 'ACC-NORM-001', label: 'ACC-NORM-001 (Clean Baseline)' },
     { id: 'ACC-PROXY-001', label: 'ACC-PROXY-001 (IP Proxy Hop)' },
+    { id: 'ACC-COLLUDE-001', label: 'ACC-COLLUDE-001 (Merchant Collusion)' },
     { id: 'ACC-CHAIN-SOURCE-501', label: 'ACC-CHAIN-SOURCE-501 (Layering)' },
   ];
 
@@ -95,12 +113,19 @@ export const InvestigationPage: React.FC = () => {
         setCurrentCase(c);
         // If no target account was explicitly selected in URL, pick from case
         if (!targetAccountParam) {
-          const accNode = c.nodes?.find((n) => n.type === 'Account');
-          if (accNode) {
-            setSelectedAccountId(accNode.id);
-          } else if (c.customer_id) {
-            setSelectedAccountId('ACC-RING-001');
+          const defaultAcc = CASE_DEFAULT_ACCOUNTS[c.id.toUpperCase()];
+          if (defaultAcc) {
+            setSelectedAccountId(defaultAcc);
+          } else {
+            const accNode = c.nodes?.find((n) => n.type === 'Account');
+            if (accNode) {
+              setSelectedAccountId(resolveAccountId(accNode.id, c.id));
+            } else {
+              setSelectedAccountId('ACC-RING-001');
+            }
           }
+        } else {
+          setSelectedAccountId(resolveAccountId(targetAccountParam, c.id));
         }
       }
     });

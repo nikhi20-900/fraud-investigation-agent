@@ -1,7 +1,7 @@
 {
   "metadata": {
     "generator": "generate_fraud_data.py",
-    "generated_at": "2026-09-21T19:44:16.012100+00:00",
+    "generated_at": "2026-09-21T19:59:08.233485+00:00",
     "random_seed": 42,
     "vertex_counts": {
       "Customer": 23,
