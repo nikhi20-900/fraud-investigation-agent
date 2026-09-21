@@ -1,0 +1,743 @@
+{
+  "timestamp": "2026-09-21T19:44:12.214154+00:00",
+  "dataset": {
+    "vertices": 133,
+    "edges": 147,
+    "scenarios": 5,
+    "source": "data/synthetic_fraud_graph.json"
+  },
+  "scenario_results": [
+    {
+      "scenario": "NORMAL",
+      "display_name": "Normal Baseline Customer Behavior",
+      "account_id": "ACC-NORM-001",
+      "passed": true,
+      "detected_patterns": [],
+      "failure_reasons": []
+    },
+    {
+      "scenario": "SHARED_DEVICE_RING",
+      "display_name": "Rooted Emulator Shared Device Ring",
+      "account_id": "ACC-RING-001",
+      "passed": true,
+      "detected_patterns": [
+        "SHARED_DEVICE_RING",
+        "SHARED_IP_CLUSTER",
+        "TRANSACTION_VELOCITY",
+        "MULTI_ACCOUNT_RING",
+        "MERCHANT_CONCENTRATION"
+      ],
+      "failure_reasons": []
+    },
+    {
+      "scenario": "SHARED_IP_CLUSTER",
+      "display_name": "Anomalous Shared Proxy IP Cluster",
+      "account_id": "ACC-PROXY-001",
+      "passed": true,
+      "detected_patterns": [
+        "SHARED_IP_CLUSTER",
+        "MULTI_ACCOUNT_RING"
+      ],
+      "failure_reasons": []
+    },
+    {
+      "scenario": "MERCHANT_CONCENTRATION",
+      "display_name": "Merchant Collusion & Bust-out Structuring",
+      "account_id": "ACC-COLLUDE-001",
+      "passed": true,
+      "detected_patterns": [
+        "TRANSACTION_VELOCITY",
+        "MERCHANT_CONCENTRATION"
+      ],
+      "failure_reasons": []
+    },
+    {
+      "scenario": "TRANSACTION_LAYERING",
+      "display_name": "Multi-Hop Money Muling Chain",
+      "account_id": "ACC-CHAIN-SOURCE-501",
+      "passed": true,
+      "detected_patterns": [
+        "TRANSACTION_LAYERING"
+      ],
+      "failure_reasons": []
+    },
+    {
+      "scenario": "TRANSACTION_VELOCITY",
+      "display_name": "Rapid Burst Transaction Velocity",
+      "account_id": "ACC-RING-001",
+      "passed": true,
+      "detected_patterns": [
+        "SHARED_DEVICE_RING",
+        "SHARED_IP_CLUSTER",
+        "TRANSACTION_VELOCITY",
+        "MULTI_ACCOUNT_RING",
+        "MERCHANT_CONCENTRATION"
+      ],
+      "failure_reasons": []
+    },
+    {
+      "scenario": "MULTI_ACCOUNT_RING",
+      "display_name": "Multi-Account Entity Linkage Ring",
+      "account_id": "ACC-RING-001",
+      "passed": true,
+      "detected_patterns": [
+        "SHARED_DEVICE_RING",
+        "SHARED_IP_CLUSTER",
+        "TRANSACTION_VELOCITY",
+        "MULTI_ACCOUNT_RING",
+        "MERCHANT_CONCENTRATION"
+      ],
+      "failure_reasons": []
+    }
+  ],
+  "determinism": {
+    "passed": true,
+    "evaluations": [
+      {
+        "account_id": "ACC-RING-001",
+        "case_id": "CASE-1001",
+        "runs_evaluated": 3,
+        "is_deterministic": true,
+        "sample_fingerprint": {
+          "risk_score": 100.0,
+          "risk_tier": "CRITICAL",
+          "uncertainty_score": 27.0,
+          "uncertainty_tier": "LOW",
+          "risk_quadrant": "HIGH_RISK_LOW_UNCERTAINTY",
+          "finding_patterns": [
+            "SHARED_DEVICE_RING",
+            "SHARED_IP_CLUSTER",
+            "TRANSACTION_VELOCITY",
+            "MULTI_ACCOUNT_RING",
+            "MERCHANT_CONCENTRATION"
+          ],
+          "finding_entities": [
+            [
+              "ACC-RING-001",
+              "ACC-RING-002",
+              "ACC-RING-003",
+              "ACC-RING-004",
+              "DEV-ROOT-EMU-77"
+            ],
+            [
+              "ACC-RING-001",
+              "ACC-RING-002",
+              "ACC-RING-003",
+              "ACC-RING-004",
+              "IP-RING-001",
+              "IP-RING-002",
+              "IP-RING-003",
+              "IP-RING-004"
+            ],
+            [
+              "ACC-RING-001",
+              "TXN-RING-001",
+              "TXN-RING-001-B",
+              "TXN-RING-001-C"
+            ],
+            [
+              "ACC-RING-001",
+              "ACC-RING-002",
+              "ACC-RING-003",
+              "ACC-RING-004",
+              "DEV-ROOT-EMU-77"
+            ],
+            [
+              "ACC-RING-001",
+              "MERCH-CRYPTO-COLLUSION-99",
+              "TXN-RING-001",
+              "TXN-RING-001-B",
+              "TXN-RING-001-C"
+            ]
+          ],
+          "recommendation_action_types": [
+            "REQUEST_DEVICE_TELEMETRY",
+            "REVIEW_VELOCITY_ACTIVITY",
+            "REVIEW_MERCHANT_RELATIONSHIP",
+            "REVIEW_ACCOUNT_CONNECTIONS",
+            "INVESTIGATE_SHARED_DEVICE",
+            "INVESTIGATE_SHARED_IP",
+            "MANUAL_ANALYST_REVIEW",
+            "REQUEST_KYC_REVERIFICATION",
+            "EXPAND_TRANSACTION_HISTORY"
+          ],
+          "recommendation_ordering": [
+            [
+              "REQUEST_DEVICE_TELEMETRY",
+              77.2
+            ],
+            [
+              "REVIEW_VELOCITY_ACTIVITY",
+              76.0
+            ],
+            [
+              "REVIEW_MERCHANT_RELATIONSHIP",
+              75.0
+            ],
+            [
+              "REVIEW_ACCOUNT_CONNECTIONS",
+              74.8
+            ],
+            [
+              "INVESTIGATE_SHARED_DEVICE",
+              74.2
+            ],
+            [
+              "INVESTIGATE_SHARED_IP",
+              73.4
+            ],
+            [
+              "MANUAL_ANALYST_REVIEW",
+              71.8
+            ],
+            [
+              "REQUEST_KYC_REVERIFICATION",
+              70.0
+            ],
+            [
+              "EXPAND_TRANSACTION_HISTORY",
+              69.0
+            ]
+          ]
+        }
+      },
+      {
+        "account_id": "ACC-NORM-001",
+        "case_id": "CASE-1002",
+        "runs_evaluated": 3,
+        "is_deterministic": true,
+        "sample_fingerprint": {
+          "risk_score": 0.0,
+          "risk_tier": "LOW",
+          "uncertainty_score": 15.0,
+          "uncertainty_tier": "LOW",
+          "risk_quadrant": "LOW_RISK_LOW_UNCERTAINTY",
+          "finding_patterns": [],
+          "finding_entities": [],
+          "recommendation_action_types": [],
+          "recommendation_ordering": []
+        }
+      },
+      {
+        "account_id": "ACC-PROXY-001",
+        "case_id": "CASE-1002",
+        "runs_evaluated": 3,
+        "is_deterministic": true,
+        "sample_fingerprint": {
+          "risk_score": 34.8,
+          "risk_tier": "MEDIUM",
+          "uncertainty_score": 35.0,
+          "uncertainty_tier": "MEDIUM",
+          "risk_quadrant": "LOW_RISK_LOW_UNCERTAINTY",
+          "finding_patterns": [
+            "SHARED_IP_CLUSTER",
+            "MULTI_ACCOUNT_RING"
+          ],
+          "finding_entities": [
+            [
+              "ACC-PROXY-001",
+              "ACC-PROXY-002",
+              "ACC-PROXY-003",
+              "IP-ANOMALY-PROXY-88"
+            ],
+            [
+              "ACC-PROXY-001",
+              "ACC-PROXY-002",
+              "ACC-PROXY-003",
+              "IP-ANOMALY-PROXY-88"
+            ]
+          ],
+          "recommendation_action_types": [
+            "REVIEW_ACCOUNT_CONNECTIONS",
+            "INVESTIGATE_SHARED_IP",
+            "REQUEST_KYC_REVERIFICATION",
+            "MANUAL_ANALYST_REVIEW"
+          ],
+          "recommendation_ordering": [
+            [
+              "REVIEW_ACCOUNT_CONNECTIONS",
+              69.4
+            ],
+            [
+              "INVESTIGATE_SHARED_IP",
+              68.0
+            ],
+            [
+              "REQUEST_KYC_REVERIFICATION",
+              35.0
+            ],
+            [
+              "MANUAL_ANALYST_REVIEW",
+              32.4
+            ]
+          ]
+        }
+      },
+      {
+        "account_id": "ACC-CHAIN-SOURCE-501",
+        "case_id": "CASE-1005",
+        "runs_evaluated": 3,
+        "is_deterministic": true,
+        "sample_fingerprint": {
+          "risk_score": 55.2,
+          "risk_tier": "HIGH",
+          "uncertainty_score": 55.0,
+          "uncertainty_tier": "MEDIUM",
+          "risk_quadrant": "HIGH_RISK_LOW_UNCERTAINTY",
+          "finding_patterns": [
+            "TRANSACTION_LAYERING"
+          ],
+          "finding_entities": [
+            [
+              "ACC-CHAIN-MULE-502",
+              "ACC-CHAIN-MULE-503",
+              "ACC-CHAIN-SOURCE-501",
+              "MERCH-OFFSHORE-504"
+            ]
+          ],
+          "recommendation_action_types": [
+            "INVESTIGATE_COUNTERPARTY",
+            "TRACE_TRANSACTION_CHAIN",
+            "REQUEST_KYC_REVERIFICATION",
+            "COLLECT_MISSING_EVIDENCE"
+          ],
+          "recommendation_ordering": [
+            [
+              "INVESTIGATE_COUNTERPARTY",
+              82.6
+            ],
+            [
+              "TRACE_TRANSACTION_CHAIN",
+              81.6
+            ],
+            [
+              "REQUEST_KYC_REVERIFICATION",
+              70.0
+            ],
+            [
+              "COLLECT_MISSING_EVIDENCE",
+              69.0
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "risk_evaluation": {
+    "passed": true,
+    "evaluated_accounts": [
+      {
+        "account_id": "ACC-NORM-001",
+        "scenario_type": "NORMAL",
+        "risk_score": 0.0,
+        "risk_tier": "LOW",
+        "uncertainty_score": 6.0,
+        "uncertainty_tier": "LOW",
+        "risk_quadrant": "LOW_RISK_LOW_UNCERTAINTY",
+        "active_patterns": [],
+        "evidence_coverage": 1.0,
+        "factors_count": 3
+      },
+      {
+        "account_id": "ACC-NORM-002",
+        "scenario_type": "NORMAL",
+        "risk_score": 0.0,
+        "risk_tier": "LOW",
+        "uncertainty_score": 6.0,
+        "uncertainty_tier": "LOW",
+        "risk_quadrant": "LOW_RISK_LOW_UNCERTAINTY",
+        "active_patterns": [],
+        "evidence_coverage": 1.0,
+        "factors_count": 3
+      },
+      {
+        "account_id": "ACC-RING-001",
+        "scenario_type": "RING",
+        "risk_score": 100.0,
+        "risk_tier": "CRITICAL",
+        "uncertainty_score": 30.0,
+        "uncertainty_tier": "MEDIUM",
+        "risk_quadrant": "HIGH_RISK_LOW_UNCERTAINTY",
+        "active_patterns": [
+          "SHARED_DEVICE_RING",
+          "SHARED_IP_CLUSTER",
+          "TRANSACTION_VELOCITY",
+          "MULTI_ACCOUNT_RING",
+          "MERCHANT_CONCENTRATION"
+        ],
+        "evidence_coverage": 1.0,
+        "factors_count": 8
+      },
+      {
+        "account_id": "ACC-RING-002",
+        "scenario_type": "RING",
+        "risk_score": 87.3,
+        "risk_tier": "CRITICAL",
+        "uncertainty_score": 33.0,
+        "uncertainty_tier": "MEDIUM",
+        "risk_quadrant": "HIGH_RISK_LOW_UNCERTAINTY",
+        "active_patterns": [
+          "SHARED_DEVICE_RING",
+          "SHARED_IP_CLUSTER",
+          "MULTI_ACCOUNT_RING",
+          "MERCHANT_CONCENTRATION"
+        ],
+        "evidence_coverage": 1.0,
+        "factors_count": 7
+      },
+      {
+        "account_id": "ACC-PROXY-001",
+        "scenario_type": "PROXY",
+        "risk_score": 34.8,
+        "risk_tier": "MEDIUM",
+        "uncertainty_score": 32.0,
+        "uncertainty_tier": "MEDIUM",
+        "risk_quadrant": "LOW_RISK_LOW_UNCERTAINTY",
+        "active_patterns": [
+          "SHARED_IP_CLUSTER",
+          "MULTI_ACCOUNT_RING"
+        ],
+        "evidence_coverage": 1.0,
+        "factors_count": 4
+      },
+      {
+        "account_id": "ACC-COLLUDE-001",
+        "scenario_type": "MERCHANT_COLLUSION",
+        "risk_score": 54.2,
+        "risk_tier": "HIGH",
+        "uncertainty_score": 52.0,
+        "uncertainty_tier": "MEDIUM",
+        "risk_quadrant": "HIGH_RISK_LOW_UNCERTAINTY",
+        "active_patterns": [
+          "TRANSACTION_VELOCITY",
+          "MERCHANT_CONCENTRATION"
+        ],
+        "evidence_coverage": 0.5,
+        "factors_count": 4
+      },
+      {
+        "account_id": "ACC-CHAIN-SOURCE-501",
+        "scenario_type": "LAYERING",
+        "risk_score": 55.2,
+        "risk_tier": "HIGH",
+        "uncertainty_score": 46.0,
+        "uncertainty_tier": "MEDIUM",
+        "risk_quadrant": "HIGH_RISK_LOW_UNCERTAINTY",
+        "active_patterns": [
+          "TRANSACTION_LAYERING"
+        ],
+        "evidence_coverage": 0.5,
+        "factors_count": 2
+      }
+    ]
+  },
+  "recommendation_evaluation": {
+    "passed": true,
+    "evaluations": [
+      {
+        "account_id": "ACC-NORM-001",
+        "scenario": "NORMAL",
+        "passed": true,
+        "recommended_count": 0,
+        "action_types": [],
+        "expected_matched": true,
+        "no_duplicates": true
+      },
+      {
+        "account_id": "ACC-RING-001",
+        "scenario": "RING",
+        "passed": true,
+        "recommended_count": 9,
+        "action_types": [
+          "REQUEST_DEVICE_TELEMETRY",
+          "REVIEW_VELOCITY_ACTIVITY",
+          "REVIEW_MERCHANT_RELATIONSHIP",
+          "REVIEW_ACCOUNT_CONNECTIONS",
+          "INVESTIGATE_SHARED_DEVICE",
+          "INVESTIGATE_SHARED_IP",
+          "MANUAL_ANALYST_REVIEW",
+          "REQUEST_KYC_REVERIFICATION",
+          "EXPAND_TRANSACTION_HISTORY"
+        ],
+        "expected_matched": true,
+        "no_duplicates": true
+      },
+      {
+        "account_id": "ACC-PROXY-001",
+        "scenario": "PROXY",
+        "passed": true,
+        "recommended_count": 4,
+        "action_types": [
+          "REVIEW_ACCOUNT_CONNECTIONS",
+          "INVESTIGATE_SHARED_IP",
+          "REQUEST_KYC_REVERIFICATION",
+          "MANUAL_ANALYST_REVIEW"
+        ],
+        "expected_matched": true,
+        "no_duplicates": true
+      },
+      {
+        "account_id": "ACC-COLLUDE-001",
+        "scenario": "COLLUSION",
+        "passed": true,
+        "recommended_count": 5,
+        "action_types": [
+          "REVIEW_MERCHANT_RELATIONSHIP",
+          "REVIEW_VELOCITY_ACTIVITY",
+          "REQUEST_KYC_REVERIFICATION",
+          "COLLECT_MISSING_EVIDENCE",
+          "EXPAND_TRANSACTION_HISTORY"
+        ],
+        "expected_matched": true,
+        "no_duplicates": true
+      },
+      {
+        "account_id": "ACC-CHAIN-SOURCE-501",
+        "scenario": "LAYERING",
+        "passed": true,
+        "recommended_count": 4,
+        "action_types": [
+          "INVESTIGATE_COUNTERPARTY",
+          "TRACE_TRANSACTION_CHAIN",
+          "REQUEST_KYC_REVERIFICATION",
+          "COLLECT_MISSING_EVIDENCE"
+        ],
+        "expected_matched": true,
+        "no_duplicates": true
+      }
+    ]
+  },
+  "agent_evaluation": {
+    "passed": true,
+    "total_entities_in_graph": 133,
+    "untraceable_entities_count": 0,
+    "evaluations": [
+      {
+        "account_id": "ACC-NORM-001",
+        "case_id": "CASE-1002",
+        "passed": true,
+        "entities_audited": 1,
+        "ungrounded_entities": [],
+        "findings_count": 0,
+        "has_summary": true,
+        "has_audit_trail": true,
+        "hypotheses_count": 2
+      },
+      {
+        "account_id": "ACC-RING-001",
+        "case_id": "CASE-1001",
+        "passed": true,
+        "entities_audited": 13,
+        "ungrounded_entities": [],
+        "findings_count": 5,
+        "has_summary": true,
+        "has_audit_trail": true,
+        "hypotheses_count": 4
+      },
+      {
+        "account_id": "ACC-PROXY-001",
+        "case_id": "CASE-1002",
+        "passed": true,
+        "entities_audited": 4,
+        "ungrounded_entities": [],
+        "findings_count": 2,
+        "has_summary": true,
+        "has_audit_trail": true,
+        "hypotheses_count": 2
+      },
+      {
+        "account_id": "ACC-COLLUDE-001",
+        "case_id": "CASE-1004",
+        "passed": true,
+        "entities_audited": 4,
+        "ungrounded_entities": [],
+        "findings_count": 2,
+        "has_summary": true,
+        "has_audit_trail": true,
+        "hypotheses_count": 4
+      },
+      {
+        "account_id": "ACC-CHAIN-SOURCE-501",
+        "case_id": "CASE-1005",
+        "passed": true,
+        "entities_audited": 4,
+        "ungrounded_entities": [],
+        "findings_count": 1,
+        "has_summary": true,
+        "has_audit_trail": true,
+        "hypotheses_count": 2
+      }
+    ]
+  },
+  "api_robustness": {
+    "passed": true,
+    "cases_evaluated": [
+      {
+        "test_case": "missing_case_id",
+        "endpoint": "/api/investigations/run",
+        "status_code": 422,
+        "expected_status": 422,
+        "status_ok": true,
+        "sanitized": true,
+        "passed": true
+      },
+      {
+        "test_case": "missing_account_id",
+        "endpoint": "/api/investigations/run",
+        "status_code": 422,
+        "expected_status": 422,
+        "status_ok": true,
+        "sanitized": true,
+        "passed": true
+      },
+      {
+        "test_case": "empty_strings",
+        "endpoint": "/api/investigations/run",
+        "status_code": 422,
+        "expected_status": 422,
+        "status_ok": true,
+        "sanitized": true,
+        "passed": true
+      },
+      {
+        "test_case": "unknown_case",
+        "endpoint": "/api/investigations/run",
+        "status_code": 404,
+        "expected_status": 404,
+        "status_ok": true,
+        "sanitized": true,
+        "passed": true
+      },
+      {
+        "test_case": "unknown_account",
+        "endpoint": "/api/investigations/run",
+        "status_code": 404,
+        "expected_status": 404,
+        "status_ok": true,
+        "sanitized": true,
+        "passed": true
+      },
+      {
+        "test_case": "unknown_investigation",
+        "endpoint": "/api/investigations/INV-UNKNOWN-000",
+        "status_code": 404,
+        "expected_status": 404,
+        "status_ok": true,
+        "sanitized": true,
+        "passed": true
+      }
+    ]
+  },
+  "performance": {
+    "passed": true,
+    "runs_per_scenario": 5,
+    "scenarios": [
+      {
+        "scenario": "NORMAL",
+        "account_id": "ACC-NORM-001",
+        "case_id": "CASE-1002",
+        "min_ms": 2.343,
+        "max_ms": 2.654,
+        "mean_ms": 2.439,
+        "median_ms": 2.396,
+        "runs": 5
+      },
+      {
+        "scenario": "RING",
+        "account_id": "ACC-RING-001",
+        "case_id": "CASE-1001",
+        "min_ms": 3.5,
+        "max_ms": 3.681,
+        "mean_ms": 3.583,
+        "median_ms": 3.538,
+        "runs": 5
+      },
+      {
+        "scenario": "PROXY",
+        "account_id": "ACC-PROXY-001",
+        "case_id": "CASE-1002",
+        "min_ms": 3.009,
+        "max_ms": 3.69,
+        "mean_ms": 3.182,
+        "median_ms": 3.067,
+        "runs": 5
+      },
+      {
+        "scenario": "LAYERING",
+        "account_id": "ACC-CHAIN-SOURCE-501",
+        "case_id": "CASE-1005",
+        "min_ms": 2.312,
+        "max_ms": 2.477,
+        "mean_ms": 2.383,
+        "median_ms": 2.373,
+        "runs": 5
+      },
+      {
+        "scenario": "COLLUSION",
+        "account_id": "ACC-COLLUDE-001",
+        "case_id": "CASE-1004",
+        "min_ms": 3.159,
+        "max_ms": 3.279,
+        "mean_ms": 3.205,
+        "median_ms": 3.172,
+        "runs": 5
+      }
+    ],
+    "subsystems": {
+      "graph_investigation": {
+        "min_ms": 0.007,
+        "max_ms": 0.009,
+        "mean_ms": 0.008,
+        "median_ms": 0.008,
+        "runs": 5
+      },
+      "fraud_detection": {
+        "min_ms": 0.047,
+        "max_ms": 0.052,
+        "mean_ms": 0.049,
+        "median_ms": 0.048,
+        "runs": 5
+      },
+      "agent_investigation": {
+        "min_ms": 1.001,
+        "max_ms": 1.116,
+        "mean_ms": 1.03,
+        "median_ms": 1.011,
+        "runs": 5
+      },
+      "risk_calculation": {
+        "min_ms": 0.105,
+        "max_ms": 0.109,
+        "mean_ms": 0.107,
+        "median_ms": 0.107,
+        "runs": 5
+      },
+      "recommendation_generation": {
+        "min_ms": 0.214,
+        "max_ms": 0.219,
+        "mean_ms": 0.216,
+        "median_ms": 0.215,
+        "runs": 5
+      },
+      "full_integrated_pipeline": {
+        "min_ms": 3.434,
+        "max_ms": 5.462,
+        "mean_ms": 4.021,
+        "median_ms": 3.828,
+        "runs": 5
+      }
+    }
+  },
+  "overall": {
+    "passed": true,
+    "checks": {
+      "Scenario Coverage": true,
+      "Determinism": true,
+      "Risk Evaluation": true,
+      "Recommendation Evaluation": true,
+      "Agent Grounding": true,
+      "API Robustness": true,
+      "Performance Baseline": true
+    }
+  }
+}

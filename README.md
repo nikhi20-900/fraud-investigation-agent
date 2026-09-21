@@ -128,4 +128,57 @@ docker-compose up --build
 - **Phase 6 (Completed)**: Next Best Action (NBA) recommendation engine with provenance and action prioritization.
 - **Phase 7 (Completed)**: Apple-inspired investigation dashboard UI redesign with interactive graph visualization.
 - **Phase 8 (Completed)**: Full pipeline integration, unified investigation orchestrator, typed unified result schema, and comprehensive integration testing.
+- **Phase 9 (Completed)**: Rigorous evaluation layer, 7 synthetic scenario coverage, multi-run determinism verification, risk/uncertainty independence, agent grounding, evidence traceability, API robustness, and empirical performance baselines.
+
+---
+
+## Testing & Evaluation (Phase 9)
+
+Phase 9 introduces an offline-executable, rigorous evaluation harness evaluating correctness, determinism, scenario coverage, agent grounding, risk/uncertainty separation, recommendation alignment, API robustness, and performance latency baselines.
+
+### 1. Running the Full Evaluation Suite
+
+```bash
+# Run standalone evaluation runner (outputs console report + data/evaluation_results.json)
+backend/.venv/bin/python tests/run_evaluation.py
+
+# Run all unit, integration, and evaluation tests
+./tests/run_tests.sh
+```
+
+### 2. Evaluation Dimensions & Results
+
+| Evaluation Battery | Module | Status | Core Assertions |
+|:---|:---|:---:|:---|
+| **Scenario Coverage** | `tests/evaluation/test_scenarios.py` | **PASS** | 100% coverage across 7 scenarios (Normal, Device Ring, Proxy IP, Collusion, Layering, Velocity, Multi-Account). |
+| **Determinism** | `tests/evaluation/test_determinism.py` | **PASS** | `Run 1 == Run 2 == Run 3` across risk scores, tiers, findings, entities, actions, and orderings. |
+| **Risk Engine** | `tests/evaluation/test_risk_evaluation.py` | **PASS** | Bounded scores [0, 100], qualitative tier ordering, and orthogonal separation between risk and uncertainty. |
+| **Recommendations** | `tests/evaluation/test_recommendation_evaluation.py` | **PASS** | Evidence-to-action alignment, zero duplicate actions, bounded priorities, clean baseline proportionality. |
+| **Agent Grounding** | `tests/evaluation/test_agent_evaluation.py` | **PASS** | Zero fabricated entity IDs (133/133 grounded), unbroken traceability chain, no invented findings on clean accounts. |
+| **API Robustness** | `tests/evaluation/test_api_robustness.py` | **PASS** | 422 for schema validation, 404 for unknown resources, zero stack trace or internal path leakage. |
+| **Performance** | `tests/evaluation/test_performance.py` | **PASS** | Local simulator evaluation established a baseline of approximately 2.5–3.6 ms for the tested synthetic scenarios. |
+
+### 3. Key Architectural Distinctions
+
+The forensic engine enforces explicit conceptual boundaries across all analytical layers:
+- **Evidence Confidence ≠ Fraud Probability:** Evidentiary confidence ($0.0 \le c \le 1.0$) measures how strongly concrete graph telemetry supports a detected pattern rule, entirely distinct from a statistical probability of criminal fraud.
+- **Risk Score ≠ Probability:** The composite risk score ($0.0 \le s \le 100.0$) quantifies deterministic heuristic rule severity and impact weights, not a calibrated Bayesian fraud probability.
+- **Uncertainty ≠ Innocence (and Uncertainty ≠ Guilt):** Uncertainty reflects telemetry incompleteness or missing evidence. An account with low risk and high uncertainty is uncorroborated, not proven innocent. High uncertainty never inflates fraud scores.
+
+### 4. Detailed Reports & Artifacts
+
+- **Executive Evaluation Report**: [`docs/evaluation_report.md`](file:///Users/nikhilchhetri/Fraud%20/fraud-investigation-agent/docs/evaluation_report.md)
+- **Machine-Readable Evaluation Results**: [`data/evaluation_results.json`](file:///Users/nikhilchhetri/Fraud%20/fraud-investigation-agent/data/evaluation_results.json)
+- **Scenario Fixtures**: [`tests/fixtures/evaluation_cases.json`](file:///Users/nikhilchhetri/Fraud%20/fraud-investigation-agent/tests/fixtures/evaluation_cases.json)
+
+### 5. Explicit Architectural Limitations
+
+- **Local Simulator Baseline $\ne$ Production Latency:** Local simulator evaluation established a baseline of approximately 2.5–3.6 ms for the tested synthetic scenarios. TigerGraph cluster network serialization, connection pooling, and remote LLM reasoning in production would change latency substantially.
+- Evaluated against RFC-compliant **synthetic data** and local graph simulator.
+- **Rule severity $\ne$ statistical fraud probability**: Heuristic risk scores reflect rule criteria, not calibrated Bayesian probabilities.
+- **Confidence is evidentiary support**: Measures completeness of corroborating graph facts, not statistical likelihood of guilt.
+- **Rule consistency $\ne$ real-world optimality**: Validates engine adherence to forensic rules rather than global jurisdictional optimality.
+- **No production accuracy claims**: Decision-support research prototype without claims of production false positive / false negative rates.
+
+
 
