@@ -9,33 +9,33 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status }) => {
   const config: Record<CaseStatus, { label: string; bg: string; text: string; border: string }> = {
     NEW: {
       label: 'New Unassigned',
-      bg: 'bg-sky-500/10',
-      text: 'text-sky-400',
-      border: 'border-sky-500/30',
+      bg: 'bg-blue-50',
+      text: 'text-blue-600',
+      border: 'border-blue-200/60',
     },
     IN_REVIEW: {
-      label: 'In Active Review',
-      bg: 'bg-indigo-500/10',
-      text: 'text-indigo-300',
-      border: 'border-indigo-500/30',
+      label: 'In Review',
+      bg: 'bg-purple-50',
+      text: 'text-purple-600',
+      border: 'border-purple-200/60',
     },
     ESCALATED: {
       label: 'Escalated',
-      bg: 'bg-purple-500/10',
-      text: 'text-purple-300',
-      border: 'border-purple-500/30',
+      bg: 'bg-orange-50',
+      text: 'text-orange-600',
+      border: 'border-orange-200/60',
     },
     RESOLVED_FRAUD: {
       label: 'Confirmed Fraud',
-      bg: 'bg-rose-500/10',
-      text: 'text-rose-400',
-      border: 'border-rose-500/30',
+      bg: 'bg-red-50',
+      text: 'text-red-600',
+      border: 'border-red-200/60',
     },
     CLOSED_FALSE_POSITIVE: {
       label: 'False Positive',
-      bg: 'bg-slate-500/10',
-      text: 'text-slate-400',
-      border: 'border-slate-500/30',
+      bg: 'bg-gray-100',
+      text: 'text-gray-500',
+      border: 'border-gray-200/60',
     },
   };
 
@@ -43,7 +43,7 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${item.bg} ${item.text} ${item.border}`}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium border ${item.bg} ${item.text} ${item.border}`}
     >
       {item.label}
     </span>

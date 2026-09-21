@@ -6,7 +6,7 @@ from app.api.endpoints import health, cases, investigations, graph, fraud, agent
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Backend API service for Agentic Fraud Investigation Agent (Phase 6 — Next Best Action Engine)",
+    description="Backend API service for Agentic Fraud Investigation Agent (Phase 8 — Full Integration)",
     openapi_url="/api/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",

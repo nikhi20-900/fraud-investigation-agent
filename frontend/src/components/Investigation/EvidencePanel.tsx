@@ -10,71 +10,84 @@ interface EvidencePanelProps {
 export const EvidencePanel: React.FC<EvidencePanelProps> = ({ evidence, uncertainties }) => {
   const [activeTab, setActiveTab] = useState<'evidence' | 'uncertainties'>('evidence');
 
+  const getBorderAccent = (severity?: string) => {
+    switch (severity) {
+      case 'CRITICAL':
+        return 'border-l-red-500';
+      case 'HIGH':
+        return 'border-l-orange-500';
+      default:
+        return 'border-l-blue-500';
+    }
+  };
+
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
+    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-6 space-y-4">
       {/* Header & Tabs */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-        <div className="flex gap-2">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div className="bg-gray-100 rounded-lg p-0.5 flex gap-0.5">
           <button
             onClick={() => setActiveTab('evidence')}
-            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${
+            className={`flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md transition-all ${
               activeTab === 'evidence'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-white text-gray-900 font-semibold shadow-xs'
+                : 'text-gray-500 hover:text-gray-800'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-3.5 h-3.5 text-blue-600" />
             Evidence Items ({evidence.length})
           </button>
           <button
             onClick={() => setActiveTab('uncertainties')}
-            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${
+            className={`flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md transition-all ${
               activeTab === 'uncertainties'
-                ? 'bg-amber-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-white text-gray-900 font-semibold shadow-xs'
+                : 'text-gray-500 hover:text-gray-800'
             }`}
           >
-            <HelpCircle className="w-3.5 h-3.5" />
+            <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
             Evidence Gaps ({uncertainties.length})
           </button>
         </div>
-        <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
+        <span className="text-[11px] text-gray-400 font-medium hidden sm:inline">
           Forensic Grounding
         </span>
       </div>
 
       {/* Tab: Evidence */}
       {activeTab === 'evidence' && (
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
           {evidence.length === 0 ? (
-            <div className="p-4 rounded-lg bg-slate-950/40 border border-slate-800/80 text-center text-xs text-slate-500">
+            <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 text-center text-xs text-gray-500">
               No specific evidence items recorded.
             </div>
           ) : (
             evidence.map((item, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-lg bg-slate-950/50 border border-slate-800/90 hover:border-slate-700 transition-colors text-xs"
+                className={`p-3.5 rounded-xl bg-gray-50 border border-gray-200/60 border-l-4 ${getBorderAccent(
+                  item.severity
+                )} transition-colors text-xs`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-medium text-indigo-300">
+                    <span className="font-mono font-semibold text-gray-900">
                       {item.rule}
                     </span>
                     {item.pattern && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white border border-gray-200 text-gray-700">
                         {item.pattern}
                       </span>
                     )}
                   </div>
                   {item.severity && (
                     <span
-                      className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                      className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
                         item.severity === 'CRITICAL'
-                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                          ? 'bg-red-50 border-red-200 text-red-600'
                           : item.severity === 'HIGH'
-                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                          : 'bg-slate-800 border-slate-700 text-slate-400'
+                          ? 'bg-orange-50 border-orange-200 text-orange-600'
+                          : 'bg-gray-100 border-gray-200 text-gray-700'
                       }`}
                     >
                       {item.severity}
@@ -82,15 +95,15 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ evidence, uncertai
                   )}
                 </div>
 
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-gray-700 text-[11px] leading-relaxed">
                   {item.detail}
                 </p>
 
                 {item.metrics && Object.keys(item.metrics).length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-mono bg-slate-900 p-1.5 rounded border border-slate-800/60 text-slate-400">
+                  <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-mono bg-white p-2 rounded-lg border border-gray-200/60 text-gray-700">
                     {Object.entries(item.metrics).map(([k, v]) => (
                       <span key={k}>
-                        <span className="text-slate-500">{k}:</span> {String(v)}
+                        <span className="text-gray-500">{k}:</span> {String(v)}
                       </span>
                     ))}
                   </div>
@@ -103,24 +116,24 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ evidence, uncertai
 
       {/* Tab: Uncertainties / Gaps */}
       {activeTab === 'uncertainties' && (
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
           {uncertainties.length === 0 ? (
-            <div className="p-4 rounded-lg bg-emerald-950/20 border border-emerald-800/40 text-center text-xs text-emerald-300 flex items-center justify-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className="p-6 rounded-xl bg-green-50 border border-green-200/60 text-center text-xs text-green-700 flex items-center justify-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-green-600" />
               <span>Full evidence coverage. No critical telemetry gaps identified.</span>
             </div>
           ) : (
             uncertainties.map((unc, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-lg bg-amber-950/20 border border-amber-900/40 flex items-start gap-2.5 text-xs text-amber-200"
+                className="p-3.5 rounded-xl bg-amber-50 border border-amber-200/60 flex items-start gap-2.5 text-xs text-amber-900"
               >
-                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="font-semibold text-amber-100 text-[11px]">
+                  <div className="font-semibold text-amber-950 text-[12px]">
                     Uncertainty / Information Blindspot #{idx + 1}
                   </div>
-                  <div className="text-amber-200/90 text-xs mt-0.5">{unc}</div>
+                  <div className="text-amber-800/90 text-xs mt-0.5">{unc}</div>
                 </div>
               </div>
             ))
