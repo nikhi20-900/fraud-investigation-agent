@@ -53,7 +53,16 @@ uvicorn app.main:app --reload --port 8000
 - **Interactive Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - **List Cases API**: [http://localhost:8000/api/cases](http://localhost:8000/api/cases)
 - **Case Details API**: [http://localhost:8000/api/cases/CASE-1001](http://localhost:8000/api/cases/CASE-1001)
-- **Trigger Investigation**: `POST http://localhost:8000/api/investigations`
+- **Trigger Investigation (Phase 1)**: `POST http://localhost:8000/api/investigations`
+- **Run Unified Investigation (Phase 8)**: `POST http://localhost:8000/api/investigations/run`
+- **Get Investigation by ID (Phase 8)**: `GET http://localhost:8000/api/investigations/{investigation_id}`
+
+#### Example Unified Run:
+```bash
+curl -X POST http://127.0.0.1:8000/api/investigations/run \
+  -H "Content-Type: application/json" \
+  -d '{"case_id":"CASE-1001","target_account_id":"ACC-RING-001"}'
+```
 
 ---
 
@@ -76,7 +85,7 @@ npm run dev
 #### Core Pages:
 1. **Dashboard** (`/`): Overview metrics (Total Flagged Volume, Critical Alerts, Active Cases), risk distribution, and urgent alert feeds.
 2. **Cases** (`/cases`): Searchable and filterable case directory with risk scores and direct investigation links.
-3. **Investigation** (`/investigation` & `/investigation/:caseId`): In-depth case investigation view with flagged transaction timeline, linked entities, AI hypothesis, and modal to queue an automated agent run.
+3. **Investigation** (`/investigation` & `/investigation/:caseId`): Comprehensive Apple-inspired investigation workspace driven by the Phase 8 unified orchestrator with graph topology, fraud pattern scorecards, hypotheses, risk & uncertainty gauges, Next Best Actions, and immutable audit timeline.
 4. **Graph Explorer** (`/graph`): Visual relationship explorer modeling customers, accounts, cards, devices, and IP addresses.
 
 ---
@@ -91,20 +100,32 @@ docker-compose up --build
 
 ---
 
-## API Endpoints (Phase 1)
+## Key API Endpoints
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | Service health status |
-| `GET` | `/api/cases` | List fraud cases (supports `status`, `risk_level`, `search`) |
-| `GET` | `/api/cases/{case_id}` | Detailed case record with entities & transactions |
-| `POST` | `/api/investigations` | Trigger / queue an automated fraud investigation |
+| Method | Endpoint | Description | Phase |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/health` | Service health status | Phase 1 |
+| `GET` | `/api/cases` | List fraud cases (supports `status`, `risk_level`, `search`) | Phase 1 |
+| `GET` | `/api/cases/{case_id}` | Detailed case record with entities & transactions | Phase 1 |
+| `POST` | `/api/investigations` | Trigger / queue an automated fraud investigation | Phase 1 |
+| `GET` | `/api/graph/neighborhood/{id}` | TigerGraph / simulator 2-hop entity neighborhood | Phase 2 |
+| `GET` | `/api/fraud/patterns/{account_id}` | 6 calibrated fraud pattern detectors | Phase 3 |
+| `POST` | `/api/agent/investigate` | Autonomous LangGraph forensic investigation agent | Phase 4 |
+| `GET` | `/api/risk/{account_id}` | Deterministic risk & uncertainty score, quadrant matrix | Phase 5 |
+| `GET` | `/api/recommendations/{account_id}` | Prioritized, explainable Next Best Actions | Phase 6 |
+| `POST` | `/api/investigations/run` | **Unified End-to-End Investigation Orchestrator** | **Phase 8** |
+| `GET` | `/api/investigations/{id}` | **Retrieve Unified Investigation Result** | **Phase 8** |
 
 ---
 
-## Roadmap
+## Roadmap & Status
 
 - **Phase 1 (Completed)**: Foundational architecture, FastAPI backend, React/Vite/Tailwind frontend, placeholders for TigerGraph, ML, Docker.
-- **Phase 2**: TigerGraph live database connector, GSQL query execution, and dynamic graph layout.
-- **Phase 3**: Machine learning feature store, real-time risk scoring, and tabular anomaly models.
-- **Phase 4**: Multi-agent LLM reasoning loops with automated investigation report generation.
+- **Phase 2 (Completed)**: TigerGraph queries, schema definitions, and offline in-memory graph simulator.
+- **Phase 3 (Completed)**: 6 fraud pattern detection engines, calibrated confidence scoring, and evidence builder.
+- **Phase 4 (Completed)**: Stateful LangGraph autonomous forensic investigation agent.
+- **Phase 5 (Completed)**: Explainable, deterministic risk & uncertainty engine with decision quadrant matrix.
+- **Phase 6 (Completed)**: Next Best Action (NBA) recommendation engine with provenance and action prioritization.
+- **Phase 7 (Completed)**: Apple-inspired investigation dashboard UI redesign with interactive graph visualization.
+- **Phase 8 (Completed)**: Full pipeline integration, unified investigation orchestrator, typed unified result schema, and comprehensive integration testing.
+
